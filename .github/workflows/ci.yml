@@ -1,0 +1,11 @@
+name: CI
+on: push
+jobs:
+  markdown:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    uses: TanChiaChun/git-hooks/.github/workflows/workflows-markdown.yml@main
+    with:
+      os: ${{ matrix.os }}
+      submodules: true
