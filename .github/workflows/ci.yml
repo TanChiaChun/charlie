@@ -1,6 +1,14 @@
 name: CI
 on: push
 jobs:
+  python:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    uses: TanChiaChun/git-hooks/.github/workflows/workflows-python.yml@main
+    with:
+      os: ${{ matrix.os }}
+      submodules: true
   markdown:
     strategy:
       matrix:
