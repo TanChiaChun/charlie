@@ -14,11 +14,14 @@ def load_users() -> set[str]:
         return {username for [username] in csv_reader}
 
 
-def load_user_latest_steps(raw_data_dir: Path) -> dict[str, dict[str, int]]:
-    """Load the latest available steps for each user.
+def load_user_latest_steps(
+    raw_data_dir: Path, registered_users: set[str]
+) -> dict[str, dict[str, int]]:
+    """Load the latest available steps for each registered user.
 
     Args:
         raw_data_dir: Directory containing raw CSV files.
+        registered_users: Usernames to include.
 
     Returns:
         Mapping of usernames to their latest steps, with dates as keys and step
@@ -32,7 +35,10 @@ def load_user_latest_steps(raw_data_dir: Path) -> dict[str, dict[str, int]]:
             csv_reader = csv.reader(csv_file)
             next(csv_reader)
             for username, steps, date in csv_reader:
-                if username not in user_latest_steps:
+                if (
+                    username in registered_users
+                    and username not in user_latest_steps
+                ):
                     user_latest_steps[username] = {date: int(steps)}
 
     return user_latest_steps
