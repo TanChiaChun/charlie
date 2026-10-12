@@ -1,6 +1,7 @@
 """Aggregate users' daily steps from raw CSV files."""
 
 import csv
+import json
 from pathlib import Path
 
 
@@ -72,10 +73,25 @@ def load_user_latest_steps(
     return user_latest_steps
 
 
+def save_user_daily_steps(user_daily_steps: dict[str, dict[str, int]]) -> None:
+    """Save users' daily steps to a JSON file."""
+    output_dir = Path("build-data")
+    output_dir.mkdir(exist_ok=True)
+
+    with (output_dir / "user_daily_steps.json").open(mode="w") as json_file:
+        json.dump(
+            dict(sorted(user_daily_steps.items(), key=lambda x: x[0].lower())),
+            json_file,
+            ensure_ascii=False,
+            indent=2,
+        )
+
+
 def main() -> None:
     """Main function."""
     users = load_users()
-    load_user_daily_steps(users)
+    user_daily_steps = load_user_daily_steps(users)
+    save_user_daily_steps(user_daily_steps)
 
 
 if __name__ == "__main__":

@@ -53,3 +53,28 @@ def test_load_user_latest_steps(tmp_path: Path) -> None:
         "user1": {"10/12": 15000},
         "user2": {"10/12": 12500},
     }
+
+
+def test_save_user_daily_steps(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.chdir(tmp_path)
+
+    aggregate_user_steps.save_user_daily_steps(
+        {
+            "user2": {"10/11": 6000},
+            "user1": {"10/11": 8000, "10/12": 8500},
+        }
+    )
+
+    assert Path("build-data", "user_daily_steps.json").read_text() == (
+        "{\n"
+        '  "user1": {\n'
+        '    "10/11": 8000,\n'
+        '    "10/12": 8500\n'
+        "  },\n"
+        '  "user2": {\n'
+        '    "10/11": 6000\n'
+        "  }\n"
+        "}"
+    )
