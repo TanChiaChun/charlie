@@ -41,6 +41,9 @@ def load_user_latest_steps(
                 ):
                     user_latest_steps[username] = {date: int(steps)}
 
+        if user_latest_steps.keys() >= registered_users:
+            break
+
     return user_latest_steps
 
 
