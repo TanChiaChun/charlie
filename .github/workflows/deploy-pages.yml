@@ -1,0 +1,89 @@
+name: Deploy GitHub Pages
+
+on:
+  schedule:
+    - cron: "15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: charlie
+    steps:
+      - name: Require main branch
+        working-directory: ${{ github.workspace }}
+        env:
+          WORKFLOW_REF: ${{ github.ref }}
+        run: |
+          if [ "$WORKFLOW_REF" != "refs/heads/main" ]; then
+            echo "::error::Run this deployment workflow from main."
+            exit 1
+          fi
+
+      - name: Check out application
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          path: charlie
+          persist-credentials: false
+
+      - name: Check out private data
+        uses: actions/checkout@v6
+        with:
+          repository: TanChiaChun/charlie-data
+          ref: main
+          path: charlie-data
+          ssh-key: ${{ secrets.CHARLIE_DATA_DEPLOY_KEY }}
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+
+      - name: Aggregate daily steps
+        run: python scripts/aggregate_user_steps.py
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: charlie/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build static site
+        run: npm run build
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload static site
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: charlie/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
