@@ -3,5 +3,6 @@
   "python.testing.pytestArgs": [
     "--config-file=./git-hooks/config/pytest.toml",
     "--rootdir=."
-  ]
+  ],
+  "prettier.configPath": "./git-hooks/config/.prettierrc.json"
 }
