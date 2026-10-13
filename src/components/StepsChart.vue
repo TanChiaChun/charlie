@@ -27,6 +27,9 @@ const dateFormat = new Intl.DateTimeFormat('en', {
       <VisGroupedBar
         :x="(d: StepPoint) => d.date.getTime()"
         :y="(d: StepPoint) => d.steps"
+        :data-step="24 * 60 * 60 * 1000"
+        :group-padding="0.2"
+        :group-max-width="80"
       />
       <VisAxis
         type="x"
