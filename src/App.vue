@@ -1,12 +1,13 @@
 <script setup lang="ts"></script>
 
 <template>
-  <h1>You did it!</h1>
-  <p>
-    Visit
-    <a href="https://vuejs.org/" target="_blank" rel="noopener">vuejs.org</a> to
-    read the documentation
-  </p>
+  <div class="min-h-screen">
+    <main>
+      <div class="mx-auto max-w-7xl px-4 py-6">
+        <h1>Hello</h1>
+      </div>
+    </main>
+  </div>
 </template>
 
 <style scoped></style>
