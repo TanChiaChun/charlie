@@ -64,8 +64,13 @@ describe('personal step pages', () => {
     expect(wrapper?.text()).toContain('Hello, Alice!')
     expect(wrapper?.text()).toContain('Last updated: 2026-10-13 08:05:02')
     expect(fetchMock).toHaveBeenCalledWith(
-      '/user-data/aaaaaaaa.json',
-      expect.any(Object),
+      expect.objectContaining({
+        pathname: '/user-data/aaaaaaaa.json',
+      }),
+      expect.objectContaining({
+        cache: 'no-store',
+        signal: expect.any(AbortSignal),
+      }),
     )
     fetchMock.mockResolvedValueOnce(
       new Response(

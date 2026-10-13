@@ -26,10 +26,15 @@ watch(
     }
 
     try {
-      const response = await fetch(
+      const dataUrl = new URL(
         `${import.meta.env.BASE_URL}user-data/${encodeURIComponent(publicId)}.json`,
-        { signal: controller.signal },
+        window.location.origin,
       )
+      dataUrl.searchParams.set('refresh', Date.now().toString())
+      const response = await fetch(dataUrl, {
+        signal: controller.signal,
+        cache: 'no-store',
+      })
       if (controller.signal.aborted) return
       if (response.status === 404) {
         status.value = 'unavailable'
