@@ -1,10 +1,12 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { RouterView } from 'vue-router'
+</script>
 
 <template>
   <div class="min-h-screen">
     <main>
       <div class="mx-auto max-w-7xl px-4 py-6">
-        <h1>Hello</h1>
+        <RouterView />
       </div>
     </main>
   </div>

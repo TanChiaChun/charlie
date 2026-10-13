@@ -4,6 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "prepare:user-data": "node scripts/prepare-user-data.mjs",
+    "predev": "npm run prepare:user-data",
+    "prebuild-only": "npm run prepare:user-data",
     "dev": "vite",
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",

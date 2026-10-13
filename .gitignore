@@ -2,3 +2,5 @@
 .coverage
 build-data/
 node_modules/
+public/user-data/
+dist/
