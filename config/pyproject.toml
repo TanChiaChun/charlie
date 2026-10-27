@@ -1,0 +1,12 @@
+[tool.black]
+line-length = 80
+
+[tool.ruff]
+extend = "../pyproject.toml"
+extend-exclude = ["git-hooks"]
+line-length = 80
+show-fixes = true
+src = [".", "scripts"]
+
+[tool.ruff.lint]
+extend-select = ["PT"]
