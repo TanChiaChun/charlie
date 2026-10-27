@@ -3,6 +3,13 @@ on: push
 permissions:
   contents: read
 jobs:
+  vue:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    uses: TanChiaChun/git-hooks/.github/workflows/workflows-vue.yml@main
+    with:
+      os: ${{ matrix.os }}
   python:
     strategy:
       matrix:
