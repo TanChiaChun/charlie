@@ -1,0 +1,4 @@
+services:
+  markdown:
+    build:
+      dockerfile: ./git-hooks/docker/markdown.Dockerfile
