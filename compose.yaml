@@ -1,4 +1,7 @@
 services:
+  vue:
+    build:
+      dockerfile: ./git-hooks/docker/vue.Dockerfile
   python:
     build:
       dockerfile: ./git-hooks/docker/python.Dockerfile
