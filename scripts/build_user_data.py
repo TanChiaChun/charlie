@@ -76,9 +76,29 @@ def load_user_public_ids() -> dict[str, str]:
     )
 
 
+def write_user_json_files(
+    user_public_ids: dict[str, str],
+    user_daily_steps: dict[str, dict[str, int]],
+) -> None:
+    """Write per-user JSON files to the public users directory."""
+    output_dir = Path("public", "users")
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    for username, public_id in user_public_ids.items():
+        user_data = {
+            "username": username,
+            "dailySteps": user_daily_steps.get(username, {}),
+        }
+        (output_dir / f"{public_id}.json").write_text(
+            json.dumps(user_data, ensure_ascii=False, indent=2)
+        )
+
+
 def main() -> None:
     """Main function."""
-    load_user_public_ids()
+    user_public_ids = load_user_public_ids()
+    user_daily_steps = load_user_daily_steps(set(user_public_ids))
+    write_user_json_files(user_public_ids, user_daily_steps)
 
 
 if __name__ == "__main__":

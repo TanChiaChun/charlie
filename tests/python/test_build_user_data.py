@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import pytest
@@ -63,4 +64,25 @@ def test_load_user_public_ids(
     assert build_user_data.load_user_public_ids() == {
         "user1": "token1",
         "user2": "token2",
+    }
+
+
+def test_write_user_json_files(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.chdir(tmp_path)
+
+    build_user_data.write_user_json_files(
+        {"user1": "token1", "user2": "token2"},
+        {"user1": {"10/10": 10000}},
+    )
+
+    output_dir = Path("public", "users")
+    assert json.loads((output_dir / "token1.json").read_text()) == {
+        "username": "user1",
+        "dailySteps": {"10/10": 10000},
+    }
+    assert json.loads((output_dir / "token2.json").read_text()) == {
+        "username": "user2",
+        "dailySteps": {},
     }
