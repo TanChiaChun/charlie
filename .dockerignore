@@ -1,3 +1,4 @@
+# Python
 .venv/
 **/*.pyc
 .ruff_cache/
@@ -5,3 +6,6 @@
 .pytest_cache/
 .coverage
 htmlcov/
+
+# Project
+/public/users/
