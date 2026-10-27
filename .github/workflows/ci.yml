@@ -1,0 +1,13 @@
+name: CI
+on: push
+permissions:
+  contents: read
+jobs:
+  markdown:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    uses: TanChiaChun/git-hooks/.github/workflows/workflows-markdown.yml@main
+    with:
+      os: ${{ matrix.os }}
+      submodules: true
