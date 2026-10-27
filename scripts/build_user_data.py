@@ -5,6 +5,8 @@ import json
 from pathlib import Path
 from typing import cast
 
+DATA_DIR = Path("..", "charlie-data", "data")
+
 
 def load_user_latest_steps(
     raw_data_dir: Path, registered_users: set[str]
@@ -41,7 +43,7 @@ def load_user_latest_steps(
 
 def load_user_public_ids() -> dict[str, str]:
     """Load user public IDs from the JSON file."""
-    path = Path("..", "charlie-data", "data", "output", "user_public_ids.json")
+    path = DATA_DIR / "output" / "user_public_ids.json"
 
     return cast(
         dict[str, str],
