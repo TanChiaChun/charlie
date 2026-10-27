@@ -8,6 +8,31 @@ from typing import cast
 DATA_DIR = Path("..", "charlie-data", "data")
 
 
+def load_user_daily_steps(
+    registered_users: set[str],
+) -> dict[str, dict[str, int]]:
+    """Load daily steps for each registered user.
+
+    Args:
+        registered_users: Usernames to include.
+
+    Returns:
+        Mapping of usernames to daily steps, with dates as keys and step counts
+        as values.
+    """
+    user_daily_steps: dict[str, dict[str, int]] = {}
+
+    raw_data_dirs = sorted((DATA_DIR / "raw").iterdir())
+    for raw_data_dir in raw_data_dirs:
+        user_latest_steps = load_user_latest_steps(
+            raw_data_dir, registered_users
+        )
+        for username, steps_by_date in user_latest_steps.items():
+            user_daily_steps.setdefault(username, {}).update(steps_by_date)
+
+    return user_daily_steps
+
+
 def load_user_latest_steps(
     raw_data_dir: Path, registered_users: set[str]
 ) -> dict[str, dict[str, int]]:
