@@ -20,6 +20,12 @@ export default defineConfigWithVueTs(
   vueTsConfigs.recommended,
 
   {
+    rules: {
+      '@typescript-eslint/explicit-function-return-type': 'error',
+    },
+  },
+
+  {
     ...pluginPlaywright.configs['flat/recommended'],
     files: ['e2e/**/*.{test,spec}.{js,ts,jsx,tsx}'],
   },
