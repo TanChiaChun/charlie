@@ -1,5 +1,10 @@
 {
   "files.eol": "\n",
+  "python.testing.pytestEnabled": true,
+  "python.testing.pytestArgs": [
+    "--config-file=./git-hooks/config/pytest.toml",
+    "--rootdir=."
+  ],
   "black-formatter.args": ["--config", "./config/pyproject.toml"],
   "prettier.configPath": "git-hooks/config/.prettierrc.json"
 }
