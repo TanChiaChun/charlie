@@ -1,11 +1,11 @@
-import { globalIgnores } from 'eslint/config'
 import {
   defineConfigWithVueTs,
   vueTsConfigs,
 } from '@vue/eslint-config-typescript'
-import pluginVue from 'eslint-plugin-vue'
+import { globalIgnores } from 'eslint/config'
 import pluginPlaywright from 'eslint-plugin-playwright'
 import pluginVitest from '@vitest/eslint-plugin'
+import pluginVue from 'eslint-plugin-vue'
 import skipFormatting from 'eslint-config-prettier/flat'
 
 export default defineConfigWithVueTs(
@@ -21,6 +21,7 @@ export default defineConfigWithVueTs(
 
   {
     rules: {
+      'sort-imports': 'error',
       '@typescript-eslint/explicit-function-return-type': 'error',
     },
   },
