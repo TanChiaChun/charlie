@@ -22,6 +22,34 @@ def test_calculate_daily_ranks() -> None:
     ) == {"user1": 2, "user2": 1}
 
 
+def test_calculate_weekly_stats() -> None:
+    user_daily_steps = {
+        "user1": {
+            "10/25": 10397,
+            "10/26": 10190,
+            "10/27": 9680,
+        },
+        "user2": {
+            "10/25": 3432,
+            "10/26": 5316,
+            "10/27": 14964,
+        },
+        "user3": {
+            "10/25": 12285,
+        },
+        "user4": {
+            "10/26": 5702,
+        },
+    }
+    assert build_user_data.calculate_weekly_stats(
+        user_daily_steps, "2026-10-27T21:05:02", {"user1", "user2", "user3"}
+    ) == {
+        "user2": {"weeklyAverage": 10140.0, "weeklyRank": 1},
+        "user1": {"weeklyAverage": 9935.0, "weeklyRank": 2},
+        "user3": {"weeklyAverage": 0.0, "weeklyRank": None},
+    }
+
+
 def test_get_last_fetch(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -115,6 +143,7 @@ def test_write_user_json_files(
         {"user1": {"10/10": 10000}},
         "2026-10-26T17:05:02",
         {"user1": 1},
+        {"user1": {"weeklyAverage": 9935.0, "weeklyRank": 1}},
     )
 
     output_dir = Path("public", "users")
@@ -122,11 +151,11 @@ def test_write_user_json_files(
         "username": "user1",
         "lastFetch": "2026-10-26T17:05:02",
         "dailySteps": {"10/10": 10000},
-        "stats": {"dailyRank": 1},
+        "stats": {"dailyRank": 1, "weeklyAverage": 9935.0, "weeklyRank": 1},
     }
     assert json.loads((output_dir / "token2.json").read_text()) == {
         "username": "user2",
         "lastFetch": "2026-10-26T17:05:02",
         "dailySteps": {},
-        "stats": {"dailyRank": None},
+        "stats": {"dailyRank": None, "weeklyAverage": 0.0, "weeklyRank": None},
     }

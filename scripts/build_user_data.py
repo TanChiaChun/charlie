@@ -29,6 +29,37 @@ def calculate_daily_ranks(
     return daily_ranks
 
 
+def calculate_weekly_stats(
+    user_daily_steps: dict[str, dict[str, int]],
+    last_fetch: str,
+    registered_users: set[str],
+) -> dict[str, dict[str, int | float | None]]:
+    """Calculate week-to-date average steps and ranks for registered users."""
+    end_date = dt.datetime.fromisoformat(last_fetch).date()
+    start_date = end_date - dt.timedelta(days=end_date.weekday())
+    dates = [
+        (start_date + dt.timedelta(days=offset)).strftime("%m/%d")
+        for offset in range(end_date.weekday() + 1)
+    ]
+
+    weekly_averages = {}
+    for user in registered_users:
+        total_steps = sum(
+            user_daily_steps.get(user, {}).get(date, 0) for date in dates
+        )
+        weekly_averages[user] = total_steps / len(dates)
+
+    weekly_ranks = rank_users(weekly_averages)
+
+    return {
+        user: {
+            "weeklyAverage": weekly_averages[user],
+            "weeklyRank": weekly_ranks.get(user),
+        }
+        for user in registered_users
+    }
+
+
 def get_last_fetch() -> str:
     """Get the timestamp of the latest raw data in ISO format."""
     latest_dir = max(RAW_DATA_DIR.iterdir())
@@ -125,6 +156,7 @@ def write_user_json_files(
     user_daily_steps: dict[str, dict[str, int]],
     last_fetch: str,
     daily_ranks: dict[str, int],
+    weekly_stats: dict[str, dict[str, int | float | None]],
 ) -> None:
     """Write per-user JSON files to the public users directory.
 
@@ -133,6 +165,7 @@ def write_user_json_files(
         user_daily_steps: Mapping of usernames to daily step counts.
         last_fetch: Timestamp of the latest raw data in ISO format.
         daily_ranks: Mapping of usernames to their daily ranks.
+        weekly_stats: Mapping of usernames to their weekly averages and ranks.
     """
     output_dir = Path("public", "users")
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -142,7 +175,13 @@ def write_user_json_files(
             "username": username,
             "lastFetch": last_fetch,
             "dailySteps": user_daily_steps.get(username, {}),
-            "stats": {"dailyRank": daily_ranks.get(username)},
+            "stats": {
+                "dailyRank": daily_ranks.get(username),
+                "weeklyAverage": weekly_stats.get(username, {}).get(
+                    "weeklyAverage", 0
+                ),
+                "weeklyRank": weekly_stats.get(username, {}).get("weeklyRank"),
+            },
         }
         (output_dir / f"{public_id}.json").write_text(
             json.dumps(user_data, ensure_ascii=False, indent=2)
@@ -161,9 +200,12 @@ def main() -> None:
     daily_ranks = calculate_daily_ranks(
         user_daily_steps, last_fetch, registered_users
     )
+    weekly_stats = calculate_weekly_stats(
+        user_daily_steps, last_fetch, registered_users
+    )
 
     write_user_json_files(
-        user_public_ids, user_daily_steps, last_fetch, daily_ranks
+        user_public_ids, user_daily_steps, last_fetch, daily_ranks, weekly_stats
     )
 
 
