@@ -7,7 +7,7 @@ import build_user_data
 
 
 def test_calculate_daily_ranks() -> None:
-    user_daily_steps = {
+    daily_steps_by_user = {
         "user1": {"10/28": 8000},
         "user2": {"10/28": 10000},
         "user3": {"10/28": 0},
@@ -16,14 +16,14 @@ def test_calculate_daily_ranks() -> None:
     }
 
     assert build_user_data.calculate_daily_ranks(
-        user_daily_steps,
+        daily_steps_by_user,
         "2026-10-28T23:05:02",
         {"user1", "user2", "user3", "user4"},
     ) == {"user1": 2, "user2": 1}
 
 
 def test_calculate_weekly_stats() -> None:
-    user_daily_steps = {
+    daily_steps_by_user = {
         "user1": {
             "10/25": 10397,
             "10/26": 10190,
@@ -42,7 +42,7 @@ def test_calculate_weekly_stats() -> None:
         },
     }
     assert build_user_data.calculate_weekly_stats(
-        user_daily_steps, "2026-10-27T21:05:02", {"user1", "user2", "user3"}
+        daily_steps_by_user, "2026-10-27T21:05:02", {"user1", "user2", "user3"}
     ) == {
         "user2": {"weeklyAverage": 10140.0, "weeklyRank": 1},
         "user1": {"weeklyAverage": 9935.0, "weeklyRank": 2},
@@ -62,7 +62,7 @@ def test_get_last_fetch(
     assert build_user_data.get_last_fetch() == "2026-10-26T01:05:02"
 
 
-def test_load_user_daily_steps(
+def test_load_daily_steps_by_user(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     charlie_dir = tmp_path / "charlie"
@@ -83,7 +83,7 @@ def test_load_user_daily_steps(
         "username,steps,date\nuser1,9000,10/13\nuser2,6500,10/13\n"
     )
 
-    assert build_user_data.load_user_daily_steps({"user1", "user2"}) == {
+    assert build_user_data.load_daily_steps_by_user({"user1", "user2"}) == {
         "user1": {"10/12": 8500, "10/13": 9000},
         "user2": {"10/12": 6300, "10/13": 6500},
     }

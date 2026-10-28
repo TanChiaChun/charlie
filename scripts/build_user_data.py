@@ -13,14 +13,14 @@ RAW_DATA_DIR = DATA_DIR / "raw"
 
 
 def calculate_daily_ranks(
-    user_daily_steps: dict[str, dict[str, int]],
+    daily_steps_by_user: dict[str, dict[str, int]],
     last_fetch: str,
     registered_users: set[str],
 ) -> dict[str, int]:
     """Calculate daily ranks for registered users with nonzero steps."""
     latest_date_key = last_fetch[5:10].replace("-", "/")
     steps_by_user = {
-        user: user_daily_steps.get(user, {}).get(latest_date_key, 0)
+        user: daily_steps_by_user.get(user, {}).get(latest_date_key, 0)
         for user in registered_users
     }
 
@@ -30,7 +30,7 @@ def calculate_daily_ranks(
 
 
 def calculate_weekly_stats(
-    user_daily_steps: dict[str, dict[str, int]],
+    daily_steps_by_user: dict[str, dict[str, int]],
     last_fetch: str,
     registered_users: set[str],
 ) -> dict[str, dict[str, int | float | None]]:
@@ -45,7 +45,7 @@ def calculate_weekly_stats(
     weekly_averages = {}
     for user in registered_users:
         total_steps = sum(
-            user_daily_steps.get(user, {}).get(date, 0) for date in dates
+            daily_steps_by_user.get(user, {}).get(date, 0) for date in dates
         )
         weekly_averages[user] = total_steps / len(dates)
 
@@ -68,7 +68,7 @@ def get_last_fetch() -> str:
     return dt.datetime.strptime(latest_file.stem, "%Y%m%d%H%M%S").isoformat()
 
 
-def load_user_daily_steps(
+def load_daily_steps_by_user(
     registered_users: set[str],
 ) -> dict[str, dict[str, int]]:
     """Load daily steps for each registered user.
@@ -80,7 +80,7 @@ def load_user_daily_steps(
         Mapping of usernames to daily steps, with dates as keys and step counts
         as values.
     """
-    user_daily_steps: dict[str, dict[str, int]] = {}
+    daily_steps_by_user: dict[str, dict[str, int]] = {}
 
     raw_data_dirs = sorted(RAW_DATA_DIR.iterdir())
     for raw_data_dir in raw_data_dirs:
@@ -88,9 +88,9 @@ def load_user_daily_steps(
             raw_data_dir, registered_users
         )
         for username, steps_by_date in user_latest_steps.items():
-            user_daily_steps.setdefault(username, {}).update(steps_by_date)
+            daily_steps_by_user.setdefault(username, {}).update(steps_by_date)
 
-    return user_daily_steps
+    return daily_steps_by_user
 
 
 def load_user_latest_steps(
@@ -153,7 +153,7 @@ def rank_users(user_scores: Mapping[str, int | float]) -> dict[str, int]:
 
 def write_user_json_files(
     user_public_ids: dict[str, str],
-    user_daily_steps: dict[str, dict[str, int]],
+    daily_steps_by_user: dict[str, dict[str, int]],
     last_fetch: str,
     daily_ranks: dict[str, int],
     weekly_stats: dict[str, dict[str, int | float | None]],
@@ -162,7 +162,7 @@ def write_user_json_files(
 
     Args:
         user_public_ids: Mapping of usernames to public IDs.
-        user_daily_steps: Mapping of usernames to daily step counts.
+        daily_steps_by_user: Mapping of usernames to daily step counts.
         last_fetch: Timestamp of the latest raw data in ISO format.
         daily_ranks: Mapping of usernames to their daily ranks.
         weekly_stats: Mapping of usernames to their weekly averages and ranks.
@@ -174,7 +174,7 @@ def write_user_json_files(
         user_data = {
             "username": username,
             "lastFetch": last_fetch,
-            "dailySteps": user_daily_steps.get(username, {}),
+            "dailySteps": daily_steps_by_user.get(username, {}),
             "stats": {
                 "dailyRank": daily_ranks.get(username),
                 "weeklyAverage": weekly_stats.get(username, {}).get(
@@ -195,17 +195,21 @@ def main() -> None:
     user_public_ids = load_user_public_ids()
     registered_users = set(user_public_ids)
 
-    user_daily_steps = load_user_daily_steps(registered_users)
+    daily_steps_by_user = load_daily_steps_by_user(registered_users)
 
     daily_ranks = calculate_daily_ranks(
-        user_daily_steps, last_fetch, registered_users
+        daily_steps_by_user, last_fetch, registered_users
     )
     weekly_stats = calculate_weekly_stats(
-        user_daily_steps, last_fetch, registered_users
+        daily_steps_by_user, last_fetch, registered_users
     )
 
     write_user_json_files(
-        user_public_ids, user_daily_steps, last_fetch, daily_ranks, weekly_stats
+        user_public_ids,
+        daily_steps_by_user,
+        last_fetch,
+        daily_ranks,
+        weekly_stats,
     )
 
 
