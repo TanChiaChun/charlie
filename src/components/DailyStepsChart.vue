@@ -1,7 +1,13 @@
 <script setup lang="ts">
+import {
+  ChartContainer,
+  ChartCrosshair,
+  ChartTooltip,
+  ChartTooltipContent,
+  componentToString,
+} from '@/components/ui/chart'
 import { VisAxis, VisGroupedBar, VisXYContainer } from '@unovis/vue'
 import type { ChartConfig } from '@/components/ui/chart'
-import { ChartContainer } from '@/components/ui/chart'
 
 interface Data {
   date: Date
@@ -11,7 +17,11 @@ interface Data {
 const props = defineProps<{ dailySteps: Data[] }>()
 
 const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000
-const chartConfig = {} satisfies ChartConfig
+const chartConfig = {
+  steps: {
+    label: 'steps',
+  },
+} satisfies ChartConfig
 </script>
 
 <template>
@@ -30,6 +40,20 @@ const chartConfig = {} satisfies ChartConfig
         :grid-line="false"
       />
       <VisAxis type="y" />
+
+      <ChartTooltip />
+      <ChartCrosshair
+        :template="
+          componentToString(chartConfig, ChartTooltipContent, {
+            labelFormatter(d) {
+              return new Date(d).toLocaleDateString('en-SG', {
+                day: 'numeric',
+                month: 'short',
+              })
+            },
+          })
+        "
+      />
     </VisXYContainer>
   </ChartContainer>
 </template>
