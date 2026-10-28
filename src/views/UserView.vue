@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { computed, ref, watch } from 'vue'
 import DailyStepsChart from '@/components/DailyStepsChart.vue'
+import StatsCard from '@/components/StatsCard.vue'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
@@ -12,6 +13,8 @@ interface UserData {
   dailySteps: Record<string, number>
   stats: {
     dailyRank: number | null
+    weeklyAverage: number
+    weeklyRank: number | null
   }
 }
 
@@ -20,6 +23,8 @@ const username = ref<string | null>(null)
 const lastFetch = ref<Date | null>(null)
 const dailySteps = ref<{ date: Date; steps: number }[]>([])
 const dailyRank = ref<number | null>(null)
+const weeklyAverage = ref<number>(0)
+const weeklyRank = ref<number | null>(null)
 
 const formattedLastFetch = computed(() => {
   if (!lastFetch.value) {
@@ -52,6 +57,7 @@ watch(
     )
     try {
       const result: UserData = await response.json()
+
       username.value = result.username
       lastFetch.value = new Date(result.lastFetch)
       dailySteps.value = Object.entries(result.dailySteps).map(
@@ -61,6 +67,9 @@ watch(
         }),
       )
       dailyRank.value = result.stats.dailyRank
+      weeklyAverage.value = result.stats.weeklyAverage
+      weeklyRank.value = result.stats.weeklyRank
+
       status.value = 'success'
     } catch {
       status.value = 'error'
@@ -73,7 +82,7 @@ watch(
 <template>
   <div v-if="status === 'pending'">Loading...</div>
   <div v-else-if="status === 'error'">Failed to load user data.</div>
-  <div v-else class="space-y-3">
+  <div v-else class="space-y-5">
     <div>
       <h1 class="text-lg font-bold sm:text-xl">Hello, {{ username }}</h1>
       <p class="text-muted-foreground text-xs sm:text-sm">
@@ -81,22 +90,20 @@ watch(
       </p>
     </div>
 
-    <Card class="gap-0 py-4 shadow-none sm:py-5">
-      <CardHeader class="px-4 sm:px-5">
-        <CardTitle class="text-muted-foreground text-xs font-medium sm:text-sm"
-          >Today's Steps</CardTitle
-        >
-      </CardHeader>
-      <CardContent class="px-4 sm:px-5">
-        <p class="text-2xl font-bold sm:text-3xl">
-          {{ todaySteps.toLocaleString() }}
-        </p>
-        <p class="text-muted-foreground text-xs sm:text-sm" v-if="dailyRank">
-          Rank
-          <span class="text-foreground font-medium">#{{ dailyRank }}</span>
-        </p>
-      </CardContent>
-    </Card>
+    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <StatsCard
+        title="Today"
+        :value="todaySteps"
+        unit="steps"
+        :rank="dailyRank"
+      />
+      <StatsCard
+        title="This Week"
+        :value="weeklyAverage"
+        unit="steps/day"
+        :rank="weeklyRank"
+      />
+    </div>
 
     <Card class="shadow-none">
       <CardContent>

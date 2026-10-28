@@ -3,6 +3,7 @@
 import csv
 import datetime as dt
 import json
+from collections.abc import Mapping
 from pathlib import Path
 from typing import cast
 
@@ -23,16 +24,40 @@ def calculate_daily_ranks(
         for user in registered_users
     }
 
-    sorted_users = sorted(
-        steps_by_user.items(), key=lambda x: x[1], reverse=True
-    )
-    daily_ranks = {
-        user: rank
-        for rank, (user, steps) in enumerate(sorted_users, start=1)
-        if steps > 0
-    }
+    daily_ranks = rank_users(steps_by_user)
 
     return daily_ranks
+
+
+def calculate_weekly_stats(
+    user_daily_steps: dict[str, dict[str, int]],
+    last_fetch: str,
+    registered_users: set[str],
+) -> dict[str, dict[str, int | float | None]]:
+    """Calculate week-to-date average steps and ranks for registered users."""
+    end_date = dt.datetime.fromisoformat(last_fetch).date()
+    start_date = end_date - dt.timedelta(days=end_date.weekday())
+    dates = [
+        (start_date + dt.timedelta(days=offset)).strftime("%m/%d")
+        for offset in range(end_date.weekday() + 1)
+    ]
+
+    weekly_averages = {}
+    for user in registered_users:
+        total_steps = sum(
+            user_daily_steps.get(user, {}).get(date, 0) for date in dates
+        )
+        weekly_averages[user] = total_steps / len(dates)
+
+    weekly_ranks = rank_users(weekly_averages)
+
+    return {
+        user: {
+            "weeklyAverage": weekly_averages[user],
+            "weeklyRank": weekly_ranks.get(user),
+        }
+        for user in registered_users
+    }
 
 
 def get_last_fetch() -> str:
@@ -115,11 +140,23 @@ def load_user_public_ids() -> dict[str, str]:
     )
 
 
+def rank_users(user_scores: Mapping[str, int | float]) -> dict[str, int]:
+    """Rank users by score in descending order, excluding zero scores."""
+    sorted_users = sorted(user_scores.items(), key=lambda x: x[1], reverse=True)
+
+    return {
+        user: rank
+        for rank, (user, score) in enumerate(sorted_users, start=1)
+        if score > 0
+    }
+
+
 def write_user_json_files(
     user_public_ids: dict[str, str],
     user_daily_steps: dict[str, dict[str, int]],
     last_fetch: str,
     daily_ranks: dict[str, int],
+    weekly_stats: dict[str, dict[str, int | float | None]],
 ) -> None:
     """Write per-user JSON files to the public users directory.
 
@@ -128,6 +165,7 @@ def write_user_json_files(
         user_daily_steps: Mapping of usernames to daily step counts.
         last_fetch: Timestamp of the latest raw data in ISO format.
         daily_ranks: Mapping of usernames to their daily ranks.
+        weekly_stats: Mapping of usernames to their weekly averages and ranks.
     """
     output_dir = Path("public", "users")
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -137,7 +175,13 @@ def write_user_json_files(
             "username": username,
             "lastFetch": last_fetch,
             "dailySteps": user_daily_steps.get(username, {}),
-            "stats": {"dailyRank": daily_ranks.get(username)},
+            "stats": {
+                "dailyRank": daily_ranks.get(username),
+                "weeklyAverage": weekly_stats.get(username, {}).get(
+                    "weeklyAverage", 0
+                ),
+                "weeklyRank": weekly_stats.get(username, {}).get("weeklyRank"),
+            },
         }
         (output_dir / f"{public_id}.json").write_text(
             json.dumps(user_data, ensure_ascii=False, indent=2)
@@ -156,9 +200,12 @@ def main() -> None:
     daily_ranks = calculate_daily_ranks(
         user_daily_steps, last_fetch, registered_users
     )
+    weekly_stats = calculate_weekly_stats(
+        user_daily_steps, last_fetch, registered_users
+    )
 
     write_user_json_files(
-        user_public_ids, user_daily_steps, last_fetch, daily_ranks
+        user_public_ids, user_daily_steps, last_fetch, daily_ranks, weekly_stats
     )
 
 
