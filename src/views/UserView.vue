@@ -74,7 +74,7 @@ watch(
 <template>
   <div v-if="status === 'pending'">Loading...</div>
   <div v-else-if="status === 'error'">Failed to load user data.</div>
-  <div v-else class="space-y-3">
+  <div v-else class="space-y-5">
     <div>
       <h1 class="text-lg font-bold sm:text-xl">Hello, {{ username }}</h1>
       <p class="text-muted-foreground text-xs sm:text-sm">
