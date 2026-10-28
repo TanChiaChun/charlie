@@ -1,0 +1,68 @@
+name: Deploy to GitHub Pages
+on: workflow_dispatch
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./charlie
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v7
+        with:
+          path: "charlie"
+      - name: Check out private data
+        uses: actions/checkout@v7
+        with:
+          repository: "TanChiaChun/charlie-data"
+          path: "charlie-data"
+          ssh-key: ${{ secrets.CHARLIE_DATA_DEPLOY_KEY }}
+          persist-credentials: "false"
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version-file: "charlie/pyproject.toml"
+      - name: Get Python version
+        run: python --version
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "lts/*"
+          cache: "npm"
+          cache-dependency-path: "charlie/package-lock.json"
+      - name: Get Node.js version
+        run: node --version
+      - name: Install Node.js dependencies
+        run: |
+          npm ci
+          npm ls
+
+      - name: Build user data
+        run: python ./scripts/build_user_data.py
+      - name: Build app
+        run: npm run build
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v6
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: "charlie/dist"
+
+  deploy:
+    permissions:
+      pages: write
+      id-token: write
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
