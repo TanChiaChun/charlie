@@ -17,7 +17,10 @@ const dailySteps = ref<{ date: Date; steps: number }[]>([])
 watch(
   () => route.params.id,
   async (id) => {
-    const response = await fetch(`/users/${id}.json`, { cache: 'no-store' })
+    const response = await fetch(
+      `${import.meta.env.BASE_URL}users/${id}.json`,
+      { cache: 'no-store' },
+    )
     try {
       const result: UserData = await response.json()
       username.value = result.username
