@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Card, CardContent } from '@/components/ui/card'
 import { ref, watch } from 'vue'
 import DailyStepsChart from '@/components/DailyStepsChart.vue'
 import { useRoute } from 'vue-router'
@@ -42,8 +43,12 @@ watch(
 <template>
   <div v-if="status === 'pending'">Loading...</div>
   <div v-else-if="status === 'error'">Failed to load user data.</div>
-  <div v-else>
-    <h1>Hello, {{ username }}</h1>
-    <DailyStepsChart :daily-steps />
+  <div v-else class="space-y-3">
+    <h1 class="text-lg font-bold sm:text-xl">Hello, {{ username }}</h1>
+    <Card class="shadow-none">
+      <CardContent>
+        <DailyStepsChart :daily-steps />
+      </CardContent>
+    </Card>
   </div>
 </template>
