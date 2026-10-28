@@ -6,6 +6,18 @@ import pytest
 import build_user_data
 
 
+def test_get_last_fetch(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(build_user_data, "RAW_DATA_DIR", tmp_path)
+    (tmp_path / "20261025").mkdir()
+    (tmp_path / "20261026").mkdir()
+    (tmp_path / "20261026" / "20261026000502.csv").touch()
+    (tmp_path / "20261026" / "20261026010502.csv").touch()
+
+    assert build_user_data.get_last_fetch() == "2026-10-26T01:05:02"
+
+
 def test_load_user_daily_steps(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -79,14 +91,17 @@ def test_write_user_json_files(
     build_user_data.write_user_json_files(
         {"user1": "token1", "user2": "token2"},
         {"user1": {"10/10": 10000}},
+        "20261026170502",
     )
 
     output_dir = Path("public", "users")
     assert json.loads((output_dir / "token1.json").read_text()) == {
         "username": "user1",
+        "lastFetch": "20261026170502",
         "dailySteps": {"10/10": 10000},
     }
     assert json.loads((output_dir / "token2.json").read_text()) == {
         "username": "user2",
+        "lastFetch": "20261026170502",
         "dailySteps": {},
     }
