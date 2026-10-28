@@ -88,7 +88,9 @@ watch(
         >
       </CardHeader>
       <CardContent class="px-4 sm:px-5">
-        <p class="text-2xl font-bold sm:text-3xl">{{ todaySteps }}</p>
+        <p class="text-2xl font-bold sm:text-3xl">
+          {{ todaySteps.toLocaleString() }}
+        </p>
         <p class="text-muted-foreground text-xs sm:text-sm" v-if="dailyRank">
           Rank
           <span class="text-foreground font-medium">#{{ dailyRank }}</span>
