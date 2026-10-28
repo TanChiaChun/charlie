@@ -121,7 +121,8 @@ def main() -> None:
     """Main function."""
     last_fetch = get_last_fetch()
     user_public_ids = load_user_public_ids()
-    user_daily_steps = load_user_daily_steps(set(user_public_ids))
+    registered_users = set(user_public_ids)
+    user_daily_steps = load_user_daily_steps(registered_users)
     write_user_json_files(user_public_ids, user_daily_steps, last_fetch)
 
 
