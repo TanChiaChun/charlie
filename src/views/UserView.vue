@@ -82,7 +82,12 @@ watch(
       </p>
     </div>
 
-    <StatsCard title="Today's Steps" :value="todaySteps" :rank="dailyRank" />
+    <StatsCard
+      title="Today"
+      :value="todaySteps"
+      unit="steps"
+      :rank="dailyRank"
+    />
 
     <Card class="shadow-none">
       <CardContent>
