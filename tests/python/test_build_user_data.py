@@ -107,20 +107,20 @@ def test_write_user_json_files(
     build_user_data.write_user_json_files(
         {"user1": "token1", "user2": "token2"},
         {"user1": {"10/10": 10000}},
-        "20261026170502",
+        "2026-10-26T17:05:02",
         {"user1": 1},
     )
 
     output_dir = Path("public", "users")
     assert json.loads((output_dir / "token1.json").read_text()) == {
         "username": "user1",
-        "lastFetch": "20261026170502",
+        "lastFetch": "2026-10-26T17:05:02",
         "dailySteps": {"10/10": 10000},
         "stats": {"dailyRank": 1},
     }
     assert json.loads((output_dir / "token2.json").read_text()) == {
         "username": "user2",
-        "lastFetch": "20261026170502",
+        "lastFetch": "2026-10-26T17:05:02",
         "dailySteps": {},
         "stats": {"dailyRank": None},
     }
