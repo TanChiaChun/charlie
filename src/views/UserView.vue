@@ -14,7 +14,7 @@ interface UserData {
 
 const status = ref<'pending' | 'success' | 'error'>('pending')
 const username = ref<string | null>(null)
-const lastFetch = ref<string | null>(null)
+const lastFetch = ref<Date | null>(null)
 const dailySteps = ref<{ date: Date; steps: number }[]>([])
 
 const formattedLastFetch = computed(() => {
@@ -22,7 +22,7 @@ const formattedLastFetch = computed(() => {
     return ''
   }
 
-  return new Date(lastFetch.value).toLocaleString('en-SG', {
+  return lastFetch.value.toLocaleString('en-SG', {
     month: 'short',
     day: 'numeric',
     hour: 'numeric',
@@ -40,7 +40,7 @@ watch(
     try {
       const result: UserData = await response.json()
       username.value = result.username
-      lastFetch.value = result.lastFetch
+      lastFetch.value = new Date(result.lastFetch)
       dailySteps.value = Object.entries(result.dailySteps).map(
         ([date, steps]) => ({
           date: new Date(`2026/${date}`),
