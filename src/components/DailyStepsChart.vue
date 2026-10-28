@@ -14,7 +14,7 @@ interface Data {
   steps: number
 }
 
-const props = defineProps<{ dailySteps: Data[] }>()
+defineProps<{ dailySteps: Data[] }>()
 
 const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000
 const chartConfig = {
@@ -26,7 +26,7 @@ const chartConfig = {
 
 <template>
   <ChartContainer :config="chartConfig">
-    <VisXYContainer :data="props.dailySteps">
+    <VisXYContainer :data="dailySteps">
       <VisGroupedBar
         :x="(d: Data) => d.date"
         :y="(d: Data) => d.steps"
@@ -36,7 +36,7 @@ const chartConfig = {
       <VisAxis
         type="x"
         :tick-format="(d: number) => new Date(d).getDate()"
-        :tick-values="props.dailySteps.map((d) => d.date)"
+        :tick-values="dailySteps.map((d) => d.date)"
         :grid-line="false"
       />
       <VisAxis type="y" />
