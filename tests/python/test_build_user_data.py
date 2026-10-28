@@ -22,10 +22,14 @@ def test_load_user_daily_steps(
     (raw_data_root / "20261012" / "20261012235501.csv").write_text(
         "username,steps,date\nuser1,8500,10/12\nuser2,6300,10/12\n"
     )
+    (raw_data_root / "20261013").mkdir(parents=True)
+    (raw_data_root / "20261013" / "20261013235501.csv").write_text(
+        "username,steps,date\nuser1,9000,10/13\nuser2,6500,10/13\n"
+    )
 
     assert build_user_data.load_user_daily_steps({"user1", "user2"}) == {
-        "user1": {"10/11": 8000, "10/12": 8500},
-        "user2": {"10/11": 6000, "10/12": 6300},
+        "user1": {"10/12": 8500, "10/13": 9000},
+        "user2": {"10/12": 6300, "10/13": 6500},
     }
 
 

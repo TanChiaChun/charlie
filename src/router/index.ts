@@ -1,8 +1,13 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router'
+import NotFoundView from '@/views/NotFoundView.vue'
+import UserView from '@/views/UserView.vue'
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
-  routes: [],
+  history: createWebHashHistory(import.meta.env.BASE_URL),
+  routes: [
+    { path: '/users/:id', component: UserView },
+    { path: '/:pathMatch(.*)*', component: NotFoundView },
+  ],
 })
 
 export default router
