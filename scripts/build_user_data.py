@@ -1,11 +1,13 @@
 """Build per-user JSON data."""
 
 import csv
+import datetime as dt
 import json
 from pathlib import Path
 from typing import cast
 
 DATA_DIR = Path("..", "charlie-data", "data")
+MIN_DATE = dt.date(2026, 10, 12)
 
 
 def load_user_daily_steps(
@@ -55,9 +57,13 @@ def load_user_latest_steps(
             next(csv_reader)
             for username, steps, date in csv_reader:
                 if (
-                    username in registered_users
-                    and username not in user_latest_steps
+                    username not in registered_users
+                    or username in user_latest_steps
                 ):
+                    continue
+
+                parsed_date = dt.date.strptime(f"2026/{date}", "%Y/%m/%d")
+                if parsed_date >= MIN_DATE:
                     user_latest_steps[username] = {date: int(steps)}
 
         if user_latest_steps.keys() >= registered_users:
