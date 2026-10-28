@@ -3,6 +3,7 @@
 import csv
 import datetime as dt
 import json
+from collections.abc import Mapping
 from pathlib import Path
 from typing import cast
 
@@ -23,14 +24,7 @@ def calculate_daily_ranks(
         for user in registered_users
     }
 
-    sorted_users = sorted(
-        steps_by_user.items(), key=lambda x: x[1], reverse=True
-    )
-    daily_ranks = {
-        user: rank
-        for rank, (user, steps) in enumerate(sorted_users, start=1)
-        if steps > 0
-    }
+    daily_ranks = rank_users(steps_by_user)
 
     return daily_ranks
 
@@ -113,6 +107,17 @@ def load_user_public_ids() -> dict[str, str]:
         dict[str, str],
         json.loads(path.read_text(encoding="utf-8")),
     )
+
+
+def rank_users(user_scores: Mapping[str, int | float]) -> dict[str, int]:
+    """Rank users by score in descending order, excluding zero scores."""
+    sorted_users = sorted(user_scores.items(), key=lambda x: x[1], reverse=True)
+
+    return {
+        user: rank
+        for rank, (user, score) in enumerate(sorted_users, start=1)
+        if score > 0
+    }
 
 
 def write_user_json_files(
