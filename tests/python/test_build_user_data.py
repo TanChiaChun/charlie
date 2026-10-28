@@ -6,6 +6,22 @@ import pytest
 import build_user_data
 
 
+def test_calculate_daily_ranks() -> None:
+    user_daily_steps = {
+        "user1": {"10/28": 8000},
+        "user2": {"10/28": 10000},
+        "user3": {"10/28": 0},
+        "user4": {"10/27": 12000},
+        "user5": {"10/28": 13000},
+    }
+
+    assert build_user_data.calculate_daily_ranks(
+        user_daily_steps,
+        "2026-10-28T23:05:02",
+        {"user1", "user2", "user3", "user4"},
+    ) == {"user1": 2, "user2": 1}
+
+
 def test_get_last_fetch(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -92,6 +108,7 @@ def test_write_user_json_files(
         {"user1": "token1", "user2": "token2"},
         {"user1": {"10/10": 10000}},
         "20261026170502",
+        {"user1": 1},
     )
 
     output_dir = Path("public", "users")
@@ -99,9 +116,11 @@ def test_write_user_json_files(
         "username": "user1",
         "lastFetch": "20261026170502",
         "dailySteps": {"10/10": 10000},
+        "stats": {"dailyRank": 1},
     }
     assert json.loads((output_dir / "token2.json").read_text()) == {
         "username": "user2",
         "lastFetch": "20261026170502",
         "dailySteps": {},
+        "stats": {"dailyRank": None},
     }
