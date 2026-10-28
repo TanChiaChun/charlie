@@ -13,6 +13,8 @@ interface UserData {
   dailySteps: Record<string, number>
   stats: {
     dailyRank: number | null
+    weeklyAverage: number
+    weeklyRank: number | null
   }
 }
 
@@ -21,6 +23,8 @@ const username = ref<string | null>(null)
 const lastFetch = ref<Date | null>(null)
 const dailySteps = ref<{ date: Date; steps: number }[]>([])
 const dailyRank = ref<number | null>(null)
+const weeklyAverage = ref<number>(0)
+const weeklyRank = ref<number | null>(null)
 
 const formattedLastFetch = computed(() => {
   if (!lastFetch.value) {
@@ -53,6 +57,7 @@ watch(
     )
     try {
       const result: UserData = await response.json()
+
       username.value = result.username
       lastFetch.value = new Date(result.lastFetch)
       dailySteps.value = Object.entries(result.dailySteps).map(
@@ -62,6 +67,9 @@ watch(
         }),
       )
       dailyRank.value = result.stats.dailyRank
+      weeklyAverage.value = result.stats.weeklyAverage
+      weeklyRank.value = result.stats.weeklyRank
+
       status.value = 'success'
     } catch {
       status.value = 'error'
@@ -82,12 +90,20 @@ watch(
       </p>
     </div>
 
-    <StatsCard
-      title="Today"
-      :value="todaySteps"
-      unit="steps"
-      :rank="dailyRank"
-    />
+    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <StatsCard
+        title="Today"
+        :value="todaySteps"
+        unit="steps"
+        :rank="dailyRank"
+      />
+      <StatsCard
+        title="This Week"
+        :value="weeklyAverage"
+        unit="steps/day"
+        :rank="weeklyRank"
+      />
+    </div>
 
     <Card class="shadow-none">
       <CardContent>
