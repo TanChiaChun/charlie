@@ -204,14 +204,23 @@ def parse_date_string(date_string: str, year: int) -> dt.date:
 
 
 def rank_users(user_scores: Mapping[str, int | float]) -> dict[str, int]:
-    """Rank users by score in descending order, excluding zero scores."""
+    """Rank by descending score, sharing ties and excluding zero scores."""
     sorted_users = sorted(user_scores.items(), key=lambda x: x[1], reverse=True)
 
-    return {
-        user: rank
-        for rank, (user, score) in enumerate(sorted_users, start=1)
-        if score > 0
-    }
+    ranks = {}
+    previous_score = None
+    previous_rank = 0
+    for position, (user, score) in enumerate(sorted_users, start=1):
+        if score <= 0:
+            break
+
+        if score != previous_score:
+            previous_rank = position
+
+        ranks[user] = previous_rank
+        previous_score = score
+
+    return ranks
 
 
 def write_user_json_files(

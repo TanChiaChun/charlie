@@ -160,8 +160,14 @@ def test_parse_date_string() -> None:
 
 def test_rank_users() -> None:
     assert build_user_data.rank_users(
-        {"user1": 10000, "user2": 12000, "user3": 8000, "user4": 0}
-    ) == {"user2": 1, "user1": 2, "user3": 3}
+        {
+            "user1": 10000,
+            "user2": 12000,
+            "user3": 8000,
+            "user4": 0,
+            "user5": 10000,
+        }
+    ) == {"user2": 1, "user1": 2, "user5": 2, "user3": 4}
 
 
 def test_write_user_json_files(
