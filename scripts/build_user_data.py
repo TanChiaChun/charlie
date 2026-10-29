@@ -4,8 +4,20 @@ import csv
 import datetime as dt
 import json
 from collections.abc import Mapping
+from dataclasses import dataclass
 from pathlib import Path
 from typing import cast
+
+
+@dataclass
+class UserDataInputs:
+    """Data required to generate per-user JSON files."""
+
+    user_public_ids: dict[str, str]
+    daily_steps_by_user: dict[str, dict[str, int]]
+    daily_ranks: dict[str, int]
+    weekly_stats: dict[str, dict[str, int | float | None]]
+
 
 DATA_DIR = Path("..", "charlie-data", "data")
 MIN_DATE = dt.date(2026, 10, 12)
@@ -256,11 +268,8 @@ def rank_users(user_scores: Mapping[str, int | float]) -> dict[str, int]:
 
 
 def write_user_json_files(
-    user_public_ids: dict[str, str],
-    daily_steps_by_user: dict[str, dict[str, int]],
+    inputs: UserDataInputs,
     last_fetch: str,
-    daily_ranks: dict[str, int],
-    weekly_stats: dict[str, dict[str, int | float | None]],
 ) -> None:
     """Write per-user JSON files to the public users directory.
 
@@ -274,17 +283,19 @@ def write_user_json_files(
     output_dir = Path("public", "users")
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    for username, public_id in user_public_ids.items():
+    for username, public_id in inputs.user_public_ids.items():
         user_data = {
             "username": username,
             "lastFetch": last_fetch,
-            "dailySteps": daily_steps_by_user.get(username, {}),
+            "dailySteps": inputs.daily_steps_by_user.get(username, {}),
             "stats": {
-                "dailyRank": daily_ranks.get(username),
-                "weeklyAverage": weekly_stats.get(username, {}).get(
+                "dailyRank": inputs.daily_ranks.get(username),
+                "weeklyAverage": inputs.weekly_stats.get(username, {}).get(
                     "weeklyAverage", 0
                 ),
-                "weeklyRank": weekly_stats.get(username, {}).get("weeklyRank"),
+                "weeklyRank": inputs.weekly_stats.get(username, {}).get(
+                    "weeklyRank"
+                ),
             },
         }
         (output_dir / f"{public_id}.json").write_text(
@@ -312,11 +323,13 @@ def main() -> None:
     )
 
     write_user_json_files(
-        user_public_ids,
-        daily_steps_by_user,
+        UserDataInputs(
+            user_public_ids,
+            daily_steps_by_user,
+            daily_ranks,
+            weekly_stats,
+        ),
         last_fetch,
-        daily_ranks,
-        weekly_stats,
     )
 
 

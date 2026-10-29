@@ -201,11 +201,13 @@ def test_write_user_json_files(
     monkeypatch.chdir(tmp_path)
 
     build_user_data.write_user_json_files(
-        {"user1": "token1", "user2": "token2"},
-        {"user1": {"10/10": 10000}},
+        build_user_data.UserDataInputs(
+            {"user1": "token1", "user2": "token2"},
+            {"user1": {"10/10": 10000}},
+            {"user1": 1},
+            {"user1": {"weeklyAverage": 9935.0, "weeklyRank": 1}},
+        ),
         "2026-10-26T17:05:02",
-        {"user1": 1},
-        {"user1": {"weeklyAverage": 9935.0, "weeklyRank": 1}},
     )
 
     output_dir = Path("public", "users")
