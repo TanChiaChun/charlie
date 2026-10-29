@@ -145,6 +145,11 @@ def calculate_weekly_stats(
     }
 
 
+def format_date(value: dt.date | None) -> str | None:
+    """Format a date as an ISO string, preserving None."""
+    return value.isoformat() if value else None
+
+
 def get_last_fetch() -> str:
     """Get the timestamp of the latest raw data in ISO format."""
     latest_dir = max(RAW_DATA_DIR.iterdir())

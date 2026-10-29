@@ -95,6 +95,11 @@ def test_calculate_weekly_stats() -> None:
     }
 
 
+def test_format_date() -> None:
+    assert build_user_data.format_date(dt.date(2026, 10, 29)) == "2026-10-29"
+    assert build_user_data.format_date(None) is None
+
+
 def test_get_last_fetch(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
