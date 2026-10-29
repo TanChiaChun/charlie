@@ -20,8 +20,11 @@ def test_calculate_5k_streaks_stats() -> None:
         {"user1", "user2", "user3"},
     )
     assert stats["user1"]["longest5kStreak"] == 2
+    assert stats["user1"]["longest5kStreakRank"] == 1
     assert stats["user2"]["longest5kStreak"] == 2
+    assert stats["user2"]["longest5kStreakRank"] == 1
     assert stats["user3"]["longest5kStreak"] == 0
+    assert stats["user3"]["longest5kStreakRank"] is None
 
 
 def test_calculate_daily_ranks() -> None:

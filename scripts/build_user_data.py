@@ -17,7 +17,7 @@ def calculate_5k_streaks_stats(
     today: dt.date,
     registered_users: set[str],
 ) -> dict[str, dict[str, int | dt.date | None]]:
-    """Calculate 5K streak statistics for registered users."""
+    """Calculate 5K streak statistics and longest-streak rankings for users."""
     streaks_stats = {}
 
     for user in registered_users:
@@ -26,6 +26,15 @@ def calculate_5k_streaks_stats(
             for date, steps in daily_steps_by_user.get(user, {}).items()
         }
         streaks_stats[user] = calculate_user_5k_streaks(daily_steps, today)
+
+    ranks = rank_users(
+        {
+            user: cast(int, stats["longest5kStreak"])
+            for user, stats in streaks_stats.items()
+        }
+    )
+    for user, stats in streaks_stats.items():
+        stats["longest5kStreakRank"] = ranks.get(user)
 
     return streaks_stats
 
