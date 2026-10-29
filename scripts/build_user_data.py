@@ -17,6 +17,7 @@ class UserDataInputs:
     daily_steps_by_user: dict[str, dict[str, int]]
     daily_ranks: dict[str, int]
     weekly_stats: dict[str, dict[str, int | float | None]]
+    streaks_5k_stats: dict[str, dict[str, int | dt.date | None]]
 
 
 DATA_DIR = Path("..", "charlie-data", "data")
@@ -296,6 +297,47 @@ def write_user_json_files(
                 "weeklyRank": inputs.weekly_stats.get(username, {}).get(
                     "weeklyRank"
                 ),
+                "longest5kStreak": inputs.streaks_5k_stats.get(
+                    username, {}
+                ).get("longest5kStreak", 0),
+                "longest5kStreakRank": inputs.streaks_5k_stats.get(
+                    username, {}
+                ).get("longest5kStreakRank"),
+                "longest5kStreakStart": format_date(
+                    cast(
+                        dt.date | None,
+                        inputs.streaks_5k_stats.get(username, {}).get(
+                            "longest5kStreakStart"
+                        ),
+                    )
+                ),
+                "longest5kStreakEnd": format_date(
+                    cast(
+                        dt.date | None,
+                        inputs.streaks_5k_stats.get(username, {}).get(
+                            "longest5kStreakEnd"
+                        ),
+                    )
+                ),
+                "current5kStreak": inputs.streaks_5k_stats.get(
+                    username, {}
+                ).get("current5kStreak", 0),
+                "current5kStreakStart": format_date(
+                    cast(
+                        dt.date | None,
+                        inputs.streaks_5k_stats.get(username, {}).get(
+                            "current5kStreakStart"
+                        ),
+                    )
+                ),
+                "current5kStreakEnd": format_date(
+                    cast(
+                        dt.date | None,
+                        inputs.streaks_5k_stats.get(username, {}).get(
+                            "current5kStreakEnd"
+                        ),
+                    )
+                ),
             },
         }
         (output_dir / f"{public_id}.json").write_text(
@@ -321,6 +363,9 @@ def main() -> None:
         today,
         registered_users,
     )
+    streaks_5k_stats = calculate_5k_streaks_stats(
+        daily_steps_by_user, today, registered_users
+    )
 
     write_user_json_files(
         UserDataInputs(
@@ -328,6 +373,7 @@ def main() -> None:
             daily_steps_by_user,
             daily_ranks,
             weekly_stats,
+            streaks_5k_stats,
         ),
         last_fetch,
     )

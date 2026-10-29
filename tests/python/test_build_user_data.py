@@ -206,6 +206,17 @@ def test_write_user_json_files(
             {"user1": {"10/10": 10000}},
             {"user1": 1},
             {"user1": {"weeklyAverage": 9935.0, "weeklyRank": 1}},
+            {
+                "user1": {
+                    "longest5kStreak": 3,
+                    "longest5kStreakRank": 1,
+                    "longest5kStreakStart": dt.date(2026, 10, 23),
+                    "longest5kStreakEnd": dt.date(2026, 10, 25),
+                    "current5kStreak": 2,
+                    "current5kStreakStart": dt.date(2026, 10, 28),
+                    "current5kStreakEnd": dt.date(2026, 10, 29),
+                }
+            },
         ),
         "2026-10-26T17:05:02",
     )
@@ -215,11 +226,33 @@ def test_write_user_json_files(
         "username": "user1",
         "lastFetch": "2026-10-26T17:05:02",
         "dailySteps": {"10/10": 10000},
-        "stats": {"dailyRank": 1, "weeklyAverage": 9935.0, "weeklyRank": 1},
+        "stats": {
+            "dailyRank": 1,
+            "weeklyAverage": 9935.0,
+            "weeklyRank": 1,
+            "longest5kStreak": 3,
+            "longest5kStreakRank": 1,
+            "longest5kStreakStart": "2026-10-23",
+            "longest5kStreakEnd": "2026-10-25",
+            "current5kStreak": 2,
+            "current5kStreakStart": "2026-10-28",
+            "current5kStreakEnd": "2026-10-29",
+        },
     }
     assert json.loads((output_dir / "token2.json").read_text()) == {
         "username": "user2",
         "lastFetch": "2026-10-26T17:05:02",
         "dailySteps": {},
-        "stats": {"dailyRank": None, "weeklyAverage": 0.0, "weeklyRank": None},
+        "stats": {
+            "dailyRank": None,
+            "weeklyAverage": 0.0,
+            "weeklyRank": None,
+            "longest5kStreak": 0,
+            "longest5kStreakRank": None,
+            "longest5kStreakStart": None,
+            "longest5kStreakEnd": None,
+            "current5kStreak": 0,
+            "current5kStreakStart": None,
+            "current5kStreakEnd": None,
+        },
     }
