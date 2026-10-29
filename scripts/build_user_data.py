@@ -120,7 +120,7 @@ def load_user_latest_steps(
                 ):
                     continue
 
-                parsed_date = dt.date.strptime(f"2026/{date}", "%Y/%m/%d")
+                parsed_date = parse_date_string(date, 2026)
                 if parsed_date >= MIN_DATE:
                     user_latest_steps[username] = {date: int(steps)}
 
@@ -138,6 +138,11 @@ def load_user_public_ids() -> dict[str, str]:
         dict[str, str],
         json.loads(path.read_text(encoding="utf-8")),
     )
+
+
+def parse_date_string(date_string: str, year: int) -> dt.date:
+    """Parse an MM/DD date string into a date using the given year."""
+    return dt.date.strptime(f"{year}/{date_string}", "%Y/%m/%d")
 
 
 def rank_users(user_scores: Mapping[str, int | float]) -> dict[str, int]:

@@ -1,3 +1,4 @@
+import datetime as dt
 import json
 from pathlib import Path
 
@@ -125,6 +126,12 @@ def test_load_user_public_ids(
         "user1": "token1",
         "user2": "token2",
     }
+
+
+def test_parse_date_string() -> None:
+    assert build_user_data.parse_date_string("10/29", 2026) == dt.date(
+        2026, 10, 29
+    )
 
 
 def test_rank_users() -> None:
