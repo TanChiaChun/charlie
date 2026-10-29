@@ -85,7 +85,7 @@ watch(
         }),
       )
       dailyRank.value = result.stats.dailyRank
-      weeklyAverage.value = result.stats.weeklyAverage
+      weeklyAverage.value = Math.floor(result.stats.weeklyAverage)
       weeklyRank.value = result.stats.weeklyRank
 
       status.value = 'success'
