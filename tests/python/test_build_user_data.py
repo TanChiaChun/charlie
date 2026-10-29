@@ -7,6 +7,23 @@ import pytest
 import build_user_data
 
 
+def test_calculate_5k_streaks_stats() -> None:
+    daily_steps_by_user = {
+        "user1": {"10/12": 5000, "10/13": 6000},
+        "user2": {"10/12": 7000, "10/13": 8000},
+        "user3": {"10/12": 3000, "10/13": 3500},
+    }
+
+    stats = build_user_data.calculate_5k_streaks_stats(
+        daily_steps_by_user,
+        build_user_data.MIN_DATE + dt.timedelta(days=2),
+        {"user1", "user2", "user3"},
+    )
+    assert stats["user1"]["longest5kStreak"] == 2
+    assert stats["user2"]["longest5kStreak"] == 2
+    assert stats["user3"]["longest5kStreak"] == 0
+
+
 def test_calculate_daily_ranks() -> None:
     daily_steps_by_user = {
         "user1": {"10/28": 8000},

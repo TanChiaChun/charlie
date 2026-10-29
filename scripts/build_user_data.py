@@ -12,6 +12,24 @@ MIN_DATE = dt.date(2026, 10, 12)
 RAW_DATA_DIR = DATA_DIR / "raw"
 
 
+def calculate_5k_streaks_stats(
+    daily_steps_by_user: dict[str, dict[str, int]],
+    today: dt.date,
+    registered_users: set[str],
+) -> dict[str, dict[str, int | dt.date | None]]:
+    """Calculate 5K streak statistics for registered users."""
+    streaks_stats = {}
+
+    for user in registered_users:
+        daily_steps = {
+            parse_date_string(date, 2026): steps
+            for date, steps in daily_steps_by_user.get(user, {}).items()
+        }
+        streaks_stats[user] = calculate_user_5k_streaks(daily_steps, today)
+
+    return streaks_stats
+
+
 def calculate_daily_ranks(
     daily_steps_by_user: dict[str, dict[str, int]],
     last_fetch: str,
