@@ -29,6 +29,65 @@ def calculate_daily_ranks(
     return daily_ranks
 
 
+def calculate_user_5k_streaks(
+    daily_steps: dict[dt.date, int], today: dt.date
+) -> dict[str, int | dt.date | None]:
+    """Calculate a user's current and longest 5K streaks.
+
+    A qualifying day has at least 5000 steps. Missing dates count as zero steps.
+    Today's streak is provisional: if today's steps are below 5000, calculate
+    streaks only through yesterday.
+    """
+    five_k_threshold = 5000
+    current_cutoff = (
+        today
+        if daily_steps.get(today, 0) >= five_k_threshold
+        else today - dt.timedelta(days=1)
+    )
+
+    longest_length = 0
+    longest_start = None
+    longest_end = None
+    current_length = 0
+    current_start = None
+    current_end = None
+    processing_length = 0
+    processing_start = None
+
+    day = MIN_DATE
+    while day <= current_cutoff:
+        if daily_steps.get(day, 0) >= five_k_threshold:
+            if processing_length == 0:
+                processing_start = day
+            processing_length += 1
+        else:
+            if processing_length > longest_length:
+                longest_length = processing_length
+                longest_start = processing_start
+                longest_end = day - dt.timedelta(days=1)
+            processing_length = 0
+            processing_start = None
+        day += dt.timedelta(days=1)
+
+    if processing_length:
+        if processing_length > longest_length:
+            longest_length = processing_length
+            longest_start = processing_start
+            longest_end = current_cutoff
+        current_length = processing_length
+        current_start = processing_start
+        current_end = current_cutoff
+
+    return {
+        "longest5kStreak": longest_length,
+        "longest5kStreakStart": longest_start,
+        "longest5kStreakEnd": longest_end,
+        "current5kStreak": current_length,
+        "current5kStreakStart": current_start,
+        "current5kStreakEnd": current_end,
+    }
+
+
 def calculate_weekly_stats(
     daily_steps_by_user: dict[str, dict[str, int]],
     end_date: dt.date,

@@ -23,6 +23,28 @@ def test_calculate_daily_ranks() -> None:
     ) == {"user1": 2, "user2": 1}
 
 
+def test_calculate_user_5k_streaks() -> None:
+    start_date = build_user_data.MIN_DATE
+    today = start_date + dt.timedelta(days=5)
+    daily_steps = {
+        start_date: 5000,
+        start_date + dt.timedelta(days=1): 6000,
+        start_date + dt.timedelta(days=2): 7000,
+        start_date + dt.timedelta(days=3): 3000,
+        start_date + dt.timedelta(days=4): 8000,
+        today: 9000,
+    }
+
+    assert build_user_data.calculate_user_5k_streaks(daily_steps, today) == {
+        "longest5kStreak": 3,
+        "longest5kStreakStart": start_date,
+        "longest5kStreakEnd": start_date + dt.timedelta(days=2),
+        "current5kStreak": 2,
+        "current5kStreakStart": start_date + dt.timedelta(days=4),
+        "current5kStreakEnd": today,
+    }
+
+
 def test_calculate_weekly_stats() -> None:
     daily_steps_by_user = {
         "user1": {
