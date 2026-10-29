@@ -195,6 +195,7 @@ def write_user_json_files(
 def main() -> None:
     """Main function."""
     last_fetch = get_last_fetch()
+    today = dt.datetime.fromisoformat(last_fetch).date()
 
     user_public_ids = load_user_public_ids()
     registered_users = set(user_public_ids)
@@ -206,7 +207,7 @@ def main() -> None:
     )
     weekly_stats = calculate_weekly_stats(
         daily_steps_by_user,
-        dt.datetime.fromisoformat(last_fetch).date(),
+        today,
         registered_users,
     )
 
