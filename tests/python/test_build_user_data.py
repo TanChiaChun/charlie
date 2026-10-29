@@ -43,7 +43,9 @@ def test_calculate_weekly_stats() -> None:
         },
     }
     assert build_user_data.calculate_weekly_stats(
-        daily_steps_by_user, "2026-10-27T21:05:02", {"user1", "user2", "user3"}
+        daily_steps_by_user,
+        dt.date(2026, 10, 27),
+        {"user1", "user2", "user3"},
     ) == {
         "user2": {"weeklyAverage": 10140.0, "weeklyRank": 1},
         "user1": {"weeklyAverage": 9935.0, "weeklyRank": 2},

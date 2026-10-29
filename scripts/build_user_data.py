@@ -31,11 +31,10 @@ def calculate_daily_ranks(
 
 def calculate_weekly_stats(
     daily_steps_by_user: dict[str, dict[str, int]],
-    last_fetch: str,
+    end_date: dt.date,
     registered_users: set[str],
 ) -> dict[str, dict[str, int | float | None]]:
     """Calculate week-to-date average steps and ranks for registered users."""
-    end_date = dt.datetime.fromisoformat(last_fetch).date()
     start_date = end_date - dt.timedelta(days=end_date.weekday())
     dates = [
         (start_date + dt.timedelta(days=offset)).strftime("%m/%d")
@@ -206,7 +205,9 @@ def main() -> None:
         daily_steps_by_user, last_fetch, registered_users
     )
     weekly_stats = calculate_weekly_stats(
-        daily_steps_by_user, last_fetch, registered_users
+        daily_steps_by_user,
+        dt.datetime.fromisoformat(last_fetch).date(),
+        registered_users,
     )
 
     write_user_json_files(
