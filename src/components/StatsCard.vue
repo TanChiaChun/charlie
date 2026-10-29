@@ -5,7 +5,7 @@ defineProps<{
   title: string
   value: number
   unit: string
-  rank: number | null
+  rank?: number | null
   subtitle?: string
 }>()
 </script>

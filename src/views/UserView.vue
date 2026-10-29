@@ -15,6 +15,13 @@ interface UserData {
     dailyRank: number | null
     weeklyAverage: number
     weeklyRank: number | null
+    longest5kStreak: number
+    longest5kStreakRank: number
+    longest5kStreakStart: string | null
+    longest5kStreakEnd: string | null
+    current5kStreak: number
+    current5kStreakStart: string | null
+    current5kStreakEnd: string | null
   }
 }
 
@@ -25,6 +32,13 @@ const dailySteps = ref<{ date: Date; steps: number }[]>([])
 const dailyRank = ref<number | null>(null)
 const weeklyAverage = ref<number>(0)
 const weeklyRank = ref<number | null>(null)
+const longest5kStreak = ref<number>(0)
+const longest5kStreakRank = ref<number>(0)
+const longest5kStreakStart = ref<Date | null>(null)
+const longest5kStreakEnd = ref<Date | null>(null)
+const current5kStreak = ref<number>(0)
+const current5kStreakStart = ref<Date | null>(null)
+const current5kStreakEnd = ref<Date | null>(null)
 
 const formattedLastFetch = computed(() => {
   if (!lastFetch.value) {
@@ -65,6 +79,26 @@ const weekRange = computed(() => {
 
   return `${formatDate(start)} - ${formatDate(end)}`
 })
+const longest5kStreakRange = computed(() =>
+  formatDateRange(longest5kStreakStart.value, longest5kStreakEnd.value),
+)
+const current5kStreakRange = computed(() =>
+  formatDateRange(current5kStreakStart.value, current5kStreakEnd.value),
+)
+
+function formatDateRange(start: Date | null, end: Date | null): string {
+  if (!start || !end) {
+    return ''
+  }
+
+  const formatDate = (date: Date): string =>
+    date.toLocaleDateString('en-SG', {
+      day: 'numeric',
+      month: 'short',
+    })
+
+  return `${formatDate(start)} - ${formatDate(end)}`
+}
 
 watch(
   () => route.params.id,
@@ -87,6 +121,21 @@ watch(
       dailyRank.value = result.stats.dailyRank
       weeklyAverage.value = Math.floor(result.stats.weeklyAverage)
       weeklyRank.value = result.stats.weeklyRank
+      longest5kStreak.value = result.stats.longest5kStreak
+      longest5kStreakRank.value = result.stats.longest5kStreakRank
+      longest5kStreakStart.value = result.stats.longest5kStreakStart
+        ? new Date(result.stats.longest5kStreakStart)
+        : null
+      longest5kStreakEnd.value = result.stats.longest5kStreakEnd
+        ? new Date(result.stats.longest5kStreakEnd)
+        : null
+      current5kStreak.value = result.stats.current5kStreak
+      current5kStreakStart.value = result.stats.current5kStreakStart
+        ? new Date(result.stats.current5kStreakStart)
+        : null
+      current5kStreakEnd.value = result.stats.current5kStreakEnd
+        ? new Date(result.stats.current5kStreakEnd)
+        : null
 
       status.value = 'success'
     } catch {
@@ -121,6 +170,22 @@ watch(
         unit="steps/day"
         :rank="weeklyRank"
         :subtitle="weekRange"
+      />
+    </div>
+
+    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <StatsCard
+        title="Current 5K Streak"
+        :value="current5kStreak"
+        unit="days"
+        :subtitle="current5kStreakRange"
+      />
+      <StatsCard
+        title="Longest 5K Streak"
+        :value="longest5kStreak"
+        unit="days"
+        :rank="longest5kStreakRank"
+        :subtitle="longest5kStreakRange"
       />
     </div>
 

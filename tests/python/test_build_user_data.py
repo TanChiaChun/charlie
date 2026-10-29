@@ -1,3 +1,4 @@
+import datetime as dt
 import json
 from pathlib import Path
 
@@ -6,8 +7,28 @@ import pytest
 import build_user_data
 
 
+def test_calculate_5k_streaks_stats() -> None:
+    daily_steps_by_user = {
+        "user1": {"10/12": 5000, "10/13": 6000},
+        "user2": {"10/12": 7000, "10/13": 8000},
+        "user3": {"10/12": 3000, "10/13": 3500},
+    }
+
+    stats = build_user_data.calculate_5k_streaks_stats(
+        daily_steps_by_user,
+        build_user_data.MIN_DATE + dt.timedelta(days=2),
+        {"user1", "user2", "user3"},
+    )
+    assert stats["user1"]["longest5kStreak"] == 2
+    assert stats["user1"]["longest5kStreakRank"] == 1
+    assert stats["user2"]["longest5kStreak"] == 2
+    assert stats["user2"]["longest5kStreakRank"] == 1
+    assert stats["user3"]["longest5kStreak"] == 0
+    assert stats["user3"]["longest5kStreakRank"] is None
+
+
 def test_calculate_daily_ranks() -> None:
-    user_daily_steps = {
+    daily_steps_by_user = {
         "user1": {"10/28": 8000},
         "user2": {"10/28": 10000},
         "user3": {"10/28": 0},
@@ -16,14 +37,36 @@ def test_calculate_daily_ranks() -> None:
     }
 
     assert build_user_data.calculate_daily_ranks(
-        user_daily_steps,
+        daily_steps_by_user,
         "2026-10-28T23:05:02",
         {"user1", "user2", "user3", "user4"},
     ) == {"user1": 2, "user2": 1}
 
 
+def test_calculate_user_5k_streaks() -> None:
+    start_date = build_user_data.MIN_DATE
+    today = start_date + dt.timedelta(days=5)
+    daily_steps = {
+        start_date: 5000,
+        start_date + dt.timedelta(days=1): 6000,
+        start_date + dt.timedelta(days=2): 7000,
+        start_date + dt.timedelta(days=3): 3000,
+        start_date + dt.timedelta(days=4): 8000,
+        today: 9000,
+    }
+
+    assert build_user_data.calculate_user_5k_streaks(daily_steps, today) == {
+        "longest5kStreak": 3,
+        "longest5kStreakStart": start_date,
+        "longest5kStreakEnd": start_date + dt.timedelta(days=2),
+        "current5kStreak": 2,
+        "current5kStreakStart": start_date + dt.timedelta(days=4),
+        "current5kStreakEnd": today,
+    }
+
+
 def test_calculate_weekly_stats() -> None:
-    user_daily_steps = {
+    daily_steps_by_user = {
         "user1": {
             "10/25": 10397,
             "10/26": 10190,
@@ -42,12 +85,19 @@ def test_calculate_weekly_stats() -> None:
         },
     }
     assert build_user_data.calculate_weekly_stats(
-        user_daily_steps, "2026-10-27T21:05:02", {"user1", "user2", "user3"}
+        daily_steps_by_user,
+        dt.date(2026, 10, 27),
+        {"user1", "user2", "user3"},
     ) == {
         "user2": {"weeklyAverage": 10140.0, "weeklyRank": 1},
         "user1": {"weeklyAverage": 9935.0, "weeklyRank": 2},
         "user3": {"weeklyAverage": 0.0, "weeklyRank": None},
     }
+
+
+def test_format_date() -> None:
+    assert build_user_data.format_date(dt.date(2026, 10, 29)) == "2026-10-29"
+    assert build_user_data.format_date(None) is None
 
 
 def test_get_last_fetch(
@@ -62,7 +112,7 @@ def test_get_last_fetch(
     assert build_user_data.get_last_fetch() == "2026-10-26T01:05:02"
 
 
-def test_load_user_daily_steps(
+def test_load_daily_steps_by_user(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     charlie_dir = tmp_path / "charlie"
@@ -83,7 +133,7 @@ def test_load_user_daily_steps(
         "username,steps,date\nuser1,9000,10/13\nuser2,6500,10/13\n"
     )
 
-    assert build_user_data.load_user_daily_steps({"user1", "user2"}) == {
+    assert build_user_data.load_daily_steps_by_user({"user1", "user2"}) == {
         "user1": {"10/12": 8500, "10/13": 9000},
         "user2": {"10/12": 6300, "10/13": 6500},
     }
@@ -127,10 +177,22 @@ def test_load_user_public_ids(
     }
 
 
+def test_parse_date_string() -> None:
+    assert build_user_data.parse_date_string("10/29", 2026) == dt.date(
+        2026, 10, 29
+    )
+
+
 def test_rank_users() -> None:
     assert build_user_data.rank_users(
-        {"user1": 10000, "user2": 12000, "user3": 8000, "user4": 0}
-    ) == {"user2": 1, "user1": 2, "user3": 3}
+        {
+            "user1": 10000,
+            "user2": 12000,
+            "user3": 8000,
+            "user4": 0,
+            "user5": 10000,
+        }
+    ) == {"user2": 1, "user1": 2, "user5": 2, "user3": 4}
 
 
 def test_write_user_json_files(
@@ -139,11 +201,24 @@ def test_write_user_json_files(
     monkeypatch.chdir(tmp_path)
 
     build_user_data.write_user_json_files(
-        {"user1": "token1", "user2": "token2"},
-        {"user1": {"10/10": 10000}},
+        build_user_data.UserDataInputs(
+            {"user1": "token1", "user2": "token2"},
+            {"user1": {"10/10": 10000}},
+            {"user1": 1},
+            {"user1": {"weeklyAverage": 9935.0, "weeklyRank": 1}},
+            {
+                "user1": {
+                    "longest5kStreak": 3,
+                    "longest5kStreakRank": 1,
+                    "longest5kStreakStart": dt.date(2026, 10, 23),
+                    "longest5kStreakEnd": dt.date(2026, 10, 25),
+                    "current5kStreak": 2,
+                    "current5kStreakStart": dt.date(2026, 10, 28),
+                    "current5kStreakEnd": dt.date(2026, 10, 29),
+                }
+            },
+        ),
         "2026-10-26T17:05:02",
-        {"user1": 1},
-        {"user1": {"weeklyAverage": 9935.0, "weeklyRank": 1}},
     )
 
     output_dir = Path("public", "users")
@@ -151,11 +226,33 @@ def test_write_user_json_files(
         "username": "user1",
         "lastFetch": "2026-10-26T17:05:02",
         "dailySteps": {"10/10": 10000},
-        "stats": {"dailyRank": 1, "weeklyAverage": 9935.0, "weeklyRank": 1},
+        "stats": {
+            "dailyRank": 1,
+            "weeklyAverage": 9935.0,
+            "weeklyRank": 1,
+            "longest5kStreak": 3,
+            "longest5kStreakRank": 1,
+            "longest5kStreakStart": "2026-10-23",
+            "longest5kStreakEnd": "2026-10-25",
+            "current5kStreak": 2,
+            "current5kStreakStart": "2026-10-28",
+            "current5kStreakEnd": "2026-10-29",
+        },
     }
     assert json.loads((output_dir / "token2.json").read_text()) == {
         "username": "user2",
         "lastFetch": "2026-10-26T17:05:02",
         "dailySteps": {},
-        "stats": {"dailyRank": None, "weeklyAverage": 0.0, "weeklyRank": None},
+        "stats": {
+            "dailyRank": None,
+            "weeklyAverage": 0.0,
+            "weeklyRank": None,
+            "longest5kStreak": 0,
+            "longest5kStreakRank": None,
+            "longest5kStreakStart": None,
+            "longest5kStreakEnd": None,
+            "current5kStreak": 0,
+            "current5kStreakStart": None,
+            "current5kStreakEnd": None,
+        },
     }
