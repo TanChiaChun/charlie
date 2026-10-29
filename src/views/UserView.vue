@@ -47,6 +47,24 @@ const todaySteps = computed(() => {
     )?.steps ?? 0
   )
 })
+const weekRange = computed(() => {
+  if (!lastFetch.value) {
+    return ''
+  }
+
+  const end = lastFetch.value
+  const day = end.getDay()
+  const start = new Date(end)
+  start.setDate(start.getDate() - (day === 0 ? 6 : day - 1))
+
+  const formatDate = (date: Date): string =>
+    date.toLocaleDateString('en-SG', {
+      day: 'numeric',
+      month: 'short',
+    })
+
+  return `${formatDate(start)} - ${formatDate(end)}`
+})
 
 watch(
   () => route.params.id,
@@ -102,6 +120,7 @@ watch(
         :value="weeklyAverage"
         unit="steps/day"
         :rank="weeklyRank"
+        :subtitle="weekRange"
       />
     </div>
 
