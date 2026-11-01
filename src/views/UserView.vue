@@ -103,11 +103,15 @@ function formatDateRange(start: Date | null, end: Date | null): string {
 watch(
   () => route.params.id,
   async (id) => {
-    const response = await fetch(
-      `${import.meta.env.BASE_URL}users/${id}.json`,
-      { cache: 'no-store' },
-    )
     try {
+      const response = await fetch(
+        `${import.meta.env.BASE_URL}users/${id}.json`,
+        { cache: 'no-store' },
+      )
+      if (!response.ok) {
+        throw new Error(`Failed to fetch user data: ${response.status}`)
+      }
+
       const result: UserData = await response.json()
 
       username.value = result.username
