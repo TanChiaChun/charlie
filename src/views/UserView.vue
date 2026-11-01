@@ -100,51 +100,60 @@ function formatDateRange(start: Date | null, end: Date | null): string {
   return `${formatDate(start)} - ${formatDate(end)}`
 }
 
+async function loadUserData(id: string): Promise<void> {
+  try {
+    const response = await fetch(
+      `${import.meta.env.BASE_URL}users/${id}.json`,
+      { cache: 'no-store' },
+    )
+    if (!response.ok) {
+      throw new Error(`Failed to fetch user data: ${response.status}`)
+    }
+
+    const result: UserData = await response.json()
+
+    username.value = result.username
+    lastFetch.value = new Date(result.lastFetch)
+    dailySteps.value = Object.entries(result.dailySteps).map(
+      ([date, steps]) => ({
+        date: new Date(`2026/${date}`),
+        steps,
+      }),
+    )
+    dailyRank.value = result.stats.dailyRank
+    weeklyAverage.value = Math.floor(result.stats.weeklyAverage)
+    weeklyRank.value = result.stats.weeklyRank
+    longest5kStreak.value = result.stats.longest5kStreak
+    longest5kStreakRank.value = result.stats.longest5kStreakRank
+    longest5kStreakStart.value = result.stats.longest5kStreakStart
+      ? new Date(result.stats.longest5kStreakStart)
+      : null
+    longest5kStreakEnd.value = result.stats.longest5kStreakEnd
+      ? new Date(result.stats.longest5kStreakEnd)
+      : null
+    current5kStreak.value = result.stats.current5kStreak
+    current5kStreakStart.value = result.stats.current5kStreakStart
+      ? new Date(result.stats.current5kStreakStart)
+      : null
+    current5kStreakEnd.value = result.stats.current5kStreakEnd
+      ? new Date(result.stats.current5kStreakEnd)
+      : null
+
+    status.value = 'success'
+  } catch {
+    status.value = 'error'
+  }
+}
+
 watch(
   () => route.params.id,
-  async (id) => {
-    try {
-      const response = await fetch(
-        `${import.meta.env.BASE_URL}users/${id}.json`,
-        { cache: 'no-store' },
-      )
-      if (!response.ok) {
-        throw new Error(`Failed to fetch user data: ${response.status}`)
-      }
-
-      const result: UserData = await response.json()
-
-      username.value = result.username
-      lastFetch.value = new Date(result.lastFetch)
-      dailySteps.value = Object.entries(result.dailySteps).map(
-        ([date, steps]) => ({
-          date: new Date(`2026/${date}`),
-          steps,
-        }),
-      )
-      dailyRank.value = result.stats.dailyRank
-      weeklyAverage.value = Math.floor(result.stats.weeklyAverage)
-      weeklyRank.value = result.stats.weeklyRank
-      longest5kStreak.value = result.stats.longest5kStreak
-      longest5kStreakRank.value = result.stats.longest5kStreakRank
-      longest5kStreakStart.value = result.stats.longest5kStreakStart
-        ? new Date(result.stats.longest5kStreakStart)
-        : null
-      longest5kStreakEnd.value = result.stats.longest5kStreakEnd
-        ? new Date(result.stats.longest5kStreakEnd)
-        : null
-      current5kStreak.value = result.stats.current5kStreak
-      current5kStreakStart.value = result.stats.current5kStreakStart
-        ? new Date(result.stats.current5kStreakStart)
-        : null
-      current5kStreakEnd.value = result.stats.current5kStreakEnd
-        ? new Date(result.stats.current5kStreakEnd)
-        : null
-
-      status.value = 'success'
-    } catch {
+  (id) => {
+    if (typeof id !== 'string') {
       status.value = 'error'
+      return
     }
+
+    loadUserData(id)
   },
   { immediate: true },
 )
