@@ -1,9 +1,30 @@
 name: CI
-on: push
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      run_vue:
+        required: true
+        type: boolean
+        default: true
+      run_python:
+        required: true
+        type: boolean
+        default: true
+      run_markdown:
+        required: true
+        type: boolean
+        default: true
 permissions:
   contents: read
 jobs:
   vue:
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.run_vue }}
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
@@ -11,6 +32,7 @@ jobs:
     with:
       os: ${{ matrix.os }}
   python:
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.run_python }}
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
@@ -19,6 +41,7 @@ jobs:
       os: ${{ matrix.os }}
       submodules: true
   markdown:
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.run_markdown }}
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
