@@ -101,6 +101,8 @@ function formatDateRange(start: Date | null, end: Date | null): string {
 }
 
 async function loadUserData(id: string): Promise<void> {
+  status.value = 'pending'
+
   try {
     const response = await fetch(
       `${import.meta.env.BASE_URL}users/${id}.json`,
