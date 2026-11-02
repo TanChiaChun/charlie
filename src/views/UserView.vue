@@ -16,7 +16,7 @@ interface UserData {
     weeklyAverage: number
     weeklyRank: number | null
     longest5kStreak: number
-    longest5kStreakRank: number
+    longest5kStreakRank: number | null
     longest5kStreakStart: string | null
     longest5kStreakEnd: string | null
     current5kStreak: number
@@ -33,7 +33,7 @@ const dailyRank = ref<number | null>(null)
 const weeklyAverage = ref<number>(0)
 const weeklyRank = ref<number | null>(null)
 const longest5kStreak = ref<number>(0)
-const longest5kStreakRank = ref<number>(0)
+const longest5kStreakRank = ref<number | null>(null)
 const longest5kStreakStart = ref<Date | null>(null)
 const longest5kStreakEnd = ref<Date | null>(null)
 const current5kStreak = ref<number>(0)
