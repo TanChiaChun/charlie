@@ -28,6 +28,7 @@ export default defineConfigWithVueTs(
   {
     plugins: { 'simple-import-sort': simpleImportSort },
     rules: {
+      'no-duplicate-imports': ['error', { allowSeparateTypeImports: true }],
       '@typescript-eslint/explicit-function-return-type': 'error',
       'simple-import-sort/imports': 'error',
       'simple-import-sort/exports': 'error',
