@@ -1,6 +1,7 @@
-import { describe, expect, test } from 'vitest'
-import StatsCard from './StatsCard.vue'
 import { mount } from '@vue/test-utils'
+import { describe, expect, test } from 'vitest'
+
+import StatsCard from './StatsCard.vue'
 
 describe('StatsCard', () => {
   test('renders title, formatted value and unit without rank', () => {

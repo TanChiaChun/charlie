@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { Card, CardContent } from '@/components/ui/card'
 import { computed, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
+
 import DailyStepsChart from '@/components/DailyStepsChart.vue'
 import StatsCard from '@/components/StatsCard.vue'
-import { useRoute } from 'vue-router'
+import { Card, CardContent } from '@/components/ui/card'
 
 const route = useRoute()
 

@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { VisAxis, VisGroupedBar, VisXYContainer } from '@unovis/vue'
+
+import type { ChartConfig } from '@/components/ui/chart'
 import {
   ChartContainer,
   ChartCrosshair,
@@ -6,8 +9,6 @@ import {
   ChartTooltipContent,
   componentToString,
 } from '@/components/ui/chart'
-import { VisAxis, VisGroupedBar, VisXYContainer } from '@unovis/vue'
-import type { ChartConfig } from '@/components/ui/chart'
 
 interface Data {
   date: Date
