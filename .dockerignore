@@ -10,5 +10,8 @@ htmlcov
 # Node.js
 node_modules
 
+# Submodule
+git-hooks/.git
+
 # Project
 public/users
