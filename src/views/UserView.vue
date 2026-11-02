@@ -71,12 +71,6 @@ const weekRange = computed(() => {
   const start = new Date(end)
   start.setDate(start.getDate() - (day === 0 ? 6 : day - 1))
 
-  const formatDate = (date: Date): string =>
-    date.toLocaleDateString('en-SG', {
-      day: 'numeric',
-      month: 'short',
-    })
-
   return `${formatDate(start)} - ${formatDate(end)}`
 })
 const longest5kStreakRange = computed(() =>
@@ -86,16 +80,16 @@ const current5kStreakRange = computed(() =>
   formatDateRange(current5kStreakStart.value, current5kStreakEnd.value),
 )
 
+function formatDate(date: Date): string {
+  return date.toLocaleDateString('en-SG', {
+    day: 'numeric',
+    month: 'short',
+  })
+}
 function formatDateRange(start: Date | null, end: Date | null): string {
   if (!start || !end) {
     return ''
   }
-
-  const formatDate = (date: Date): string =>
-    date.toLocaleDateString('en-SG', {
-      day: 'numeric',
-      month: 'short',
-    })
 
   return `${formatDate(start)} - ${formatDate(end)}`
 }
