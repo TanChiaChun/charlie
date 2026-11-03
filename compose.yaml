@@ -2,6 +2,11 @@ services:
   vue:
     build:
       dockerfile: ./git-hooks/docker/vue.Dockerfile
+  playwright:
+    build:
+      dockerfile: ./git-hooks/docker/playwright.Dockerfile
+    init: true
+    shm_size: 1gb
   python:
     build:
       dockerfile: ./git-hooks/docker/python.Dockerfile
