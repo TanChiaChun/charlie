@@ -12,6 +12,10 @@ on:
         required: true
         type: boolean
         default: true
+      run_playwright:
+        required: true
+        type: boolean
+        default: true
       run_python:
         required: true
         type: boolean
@@ -31,6 +35,9 @@ jobs:
     uses: TanChiaChun/git-hooks/.github/workflows/workflows-vue.yml@main
     with:
       os: ${{ matrix.os }}
+  playwright:
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.run_playwright }}
+    uses: TanChiaChun/git-hooks/.github/workflows/workflows-playwright.yml@main
   python:
     if: ${{ github.event_name != 'workflow_dispatch' || inputs.run_python }}
     strategy:
