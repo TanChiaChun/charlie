@@ -9,6 +9,7 @@ htmlcov
 
 # Node.js
 node_modules
+coverage
 
 # Submodule
 git-hooks/.git

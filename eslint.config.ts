@@ -1,12 +1,13 @@
+import pluginVitest from '@vitest/eslint-plugin'
 import {
   defineConfigWithVueTs,
   vueTsConfigs,
 } from '@vue/eslint-config-typescript'
 import { globalIgnores } from 'eslint/config'
-import pluginPlaywright from 'eslint-plugin-playwright'
-import pluginVitest from '@vitest/eslint-plugin'
-import pluginVue from 'eslint-plugin-vue'
 import skipFormatting from 'eslint-config-prettier/flat'
+import pluginPlaywright from 'eslint-plugin-playwright'
+import simpleImportSort from 'eslint-plugin-simple-import-sort'
+import pluginVue from 'eslint-plugin-vue'
 
 export default defineConfigWithVueTs(
   {
@@ -25,9 +26,12 @@ export default defineConfigWithVueTs(
   vueTsConfigs.recommended,
 
   {
+    plugins: { 'simple-import-sort': simpleImportSort },
     rules: {
-      'sort-imports': 'error',
+      'no-duplicate-imports': ['error', { allowSeparateTypeImports: true }],
       '@typescript-eslint/explicit-function-return-type': 'error',
+      'simple-import-sort/imports': 'error',
+      'simple-import-sort/exports': 'error',
     },
   },
 

@@ -1,4 +1,5 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
+
 import NotFoundView from '@/views/NotFoundView.vue'
 import UserView from '@/views/UserView.vue'
 

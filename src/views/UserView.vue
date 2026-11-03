@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { Card, CardContent } from '@/components/ui/card'
 import { computed, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
+
 import DailyStepsChart from '@/components/DailyStepsChart.vue'
 import StatsCard from '@/components/StatsCard.vue'
-import { useRoute } from 'vue-router'
+import { Card, CardContent } from '@/components/ui/card'
 
 const route = useRoute()
 
@@ -16,7 +17,7 @@ interface UserData {
     weeklyAverage: number
     weeklyRank: number | null
     longest5kStreak: number
-    longest5kStreakRank: number
+    longest5kStreakRank: number | null
     longest5kStreakStart: string | null
     longest5kStreakEnd: string | null
     current5kStreak: number
@@ -33,7 +34,7 @@ const dailyRank = ref<number | null>(null)
 const weeklyAverage = ref<number>(0)
 const weeklyRank = ref<number | null>(null)
 const longest5kStreak = ref<number>(0)
-const longest5kStreakRank = ref<number>(0)
+const longest5kStreakRank = ref<number | null>(null)
 const longest5kStreakStart = ref<Date | null>(null)
 const longest5kStreakEnd = ref<Date | null>(null)
 const current5kStreak = ref<number>(0)
@@ -71,12 +72,6 @@ const weekRange = computed(() => {
   const start = new Date(end)
   start.setDate(start.getDate() - (day === 0 ? 6 : day - 1))
 
-  const formatDate = (date: Date): string =>
-    date.toLocaleDateString('en-SG', {
-      day: 'numeric',
-      month: 'short',
-    })
-
   return `${formatDate(start)} - ${formatDate(end)}`
 })
 const longest5kStreakRange = computed(() =>
@@ -86,61 +81,76 @@ const current5kStreakRange = computed(() =>
   formatDateRange(current5kStreakStart.value, current5kStreakEnd.value),
 )
 
+function formatDate(date: Date): string {
+  return date.toLocaleDateString('en-SG', {
+    day: 'numeric',
+    month: 'short',
+  })
+}
 function formatDateRange(start: Date | null, end: Date | null): string {
   if (!start || !end) {
     return ''
   }
 
-  const formatDate = (date: Date): string =>
-    date.toLocaleDateString('en-SG', {
-      day: 'numeric',
-      month: 'short',
-    })
-
   return `${formatDate(start)} - ${formatDate(end)}`
 }
 
-watch(
-  () => route.params.id,
-  async (id) => {
+async function loadUserData(id: string): Promise<void> {
+  status.value = 'pending'
+
+  try {
     const response = await fetch(
       `${import.meta.env.BASE_URL}users/${id}.json`,
       { cache: 'no-store' },
     )
-    try {
-      const result: UserData = await response.json()
-
-      username.value = result.username
-      lastFetch.value = new Date(result.lastFetch)
-      dailySteps.value = Object.entries(result.dailySteps).map(
-        ([date, steps]) => ({
-          date: new Date(`2026/${date}`),
-          steps,
-        }),
-      )
-      dailyRank.value = result.stats.dailyRank
-      weeklyAverage.value = Math.floor(result.stats.weeklyAverage)
-      weeklyRank.value = result.stats.weeklyRank
-      longest5kStreak.value = result.stats.longest5kStreak
-      longest5kStreakRank.value = result.stats.longest5kStreakRank
-      longest5kStreakStart.value = result.stats.longest5kStreakStart
-        ? new Date(result.stats.longest5kStreakStart)
-        : null
-      longest5kStreakEnd.value = result.stats.longest5kStreakEnd
-        ? new Date(result.stats.longest5kStreakEnd)
-        : null
-      current5kStreak.value = result.stats.current5kStreak
-      current5kStreakStart.value = result.stats.current5kStreakStart
-        ? new Date(result.stats.current5kStreakStart)
-        : null
-      current5kStreakEnd.value = result.stats.current5kStreakEnd
-        ? new Date(result.stats.current5kStreakEnd)
-        : null
-
-      status.value = 'success'
-    } catch {
-      status.value = 'error'
+    if (!response.ok) {
+      throw new Error(`Failed to fetch user data: ${response.status}`)
     }
+
+    const result: UserData = await response.json()
+
+    username.value = result.username
+    lastFetch.value = new Date(result.lastFetch)
+    dailySteps.value = Object.entries(result.dailySteps).map(
+      ([date, steps]) => ({
+        date: new Date(`2026/${date}`),
+        steps,
+      }),
+    )
+    dailyRank.value = result.stats.dailyRank
+    weeklyAverage.value = Math.floor(result.stats.weeklyAverage)
+    weeklyRank.value = result.stats.weeklyRank
+    longest5kStreak.value = result.stats.longest5kStreak
+    longest5kStreakRank.value = result.stats.longest5kStreakRank
+    longest5kStreakStart.value = result.stats.longest5kStreakStart
+      ? new Date(result.stats.longest5kStreakStart)
+      : null
+    longest5kStreakEnd.value = result.stats.longest5kStreakEnd
+      ? new Date(result.stats.longest5kStreakEnd)
+      : null
+    current5kStreak.value = result.stats.current5kStreak
+    current5kStreakStart.value = result.stats.current5kStreakStart
+      ? new Date(result.stats.current5kStreakStart)
+      : null
+    current5kStreakEnd.value = result.stats.current5kStreakEnd
+      ? new Date(result.stats.current5kStreakEnd)
+      : null
+
+    status.value = 'success'
+  } catch {
+    status.value = 'error'
+  }
+}
+
+watch(
+  () => route.params.id,
+  (id) => {
+    if (typeof id !== 'string') {
+      status.value = 'error'
+      return
+    }
+
+    loadUserData(id)
   },
   { immediate: true },
 )
