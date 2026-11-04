@@ -223,8 +223,7 @@ def load_user_latest_steps(
                 ):
                     continue
 
-                parsed_date = parse_date_string(date, 2026)
-                if parsed_date >= MIN_DATE:
+                if parse_date_string(date, 2026) >= MIN_DATE:
                     user_latest_steps[username] = {date: int(steps)}
 
         if user_latest_steps.keys() >= registered_users:
