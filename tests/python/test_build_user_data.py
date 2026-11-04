@@ -185,6 +185,43 @@ def test_rank_users() -> None:
     ) == {"user2": 1, "user1": 2, "user5": 2, "user3": 4}
 
 
+def test_write_leaderboard_json_file(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(build_user_data, "PUBLIC_DIR", tmp_path)
+
+    daily_stats: dict[str, dict[str, int | None]] = {
+        "user1": {"todaySteps": 10339, "dailyRank": 1},
+        "user2": {"todaySteps": 6215, "dailyRank": 3},
+        "User3": {"todaySteps": 10339, "dailyRank": 1},
+        "user9": {"todaySteps": 5159, "dailyRank": 5},
+        "user5": {"todaySteps": 2663, "dailyRank": 9},
+        "user11": {"todaySteps": 2351, "dailyRank": 11},
+        "user8": {"todaySteps": 3318, "dailyRank": 8},
+        "user12": {"todaySteps": 0, "dailyRank": None},
+        "user10": {"todaySteps": 5060, "dailyRank": 6},
+        "user7": {"todaySteps": 3592, "dailyRank": 7},
+        "user6": {"todaySteps": 2515, "dailyRank": 10},
+        "user4": {"todaySteps": 5818, "dailyRank": 4},
+    }
+    build_user_data.write_leaderboard_json_file(daily_stats)
+
+    result = json.loads((tmp_path / "leaderboard.json").read_text())
+    assert len(result["daily"]) == 10
+    assert result["daily"] == [
+        {"rank": 1, "steps": 10339, "username": "user1"},
+        {"rank": 1, "steps": 10339, "username": "User3"},
+        {"rank": 3, "steps": 6215, "username": "user2"},
+        {"rank": 4, "steps": 5818, "username": "user4"},
+        {"rank": 5, "steps": 5159, "username": "user9"},
+        {"rank": 6, "steps": 5060, "username": "user10"},
+        {"rank": 7, "steps": 3592, "username": "user7"},
+        {"rank": 8, "steps": 3318, "username": "user8"},
+        {"rank": 9, "steps": 2663, "username": "user5"},
+        {"rank": 10, "steps": 2515, "username": "user6"},
+    ]
+
+
 def test_write_user_json_files(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
