@@ -22,6 +22,7 @@ class UserDataInputs:
 
 DATA_DIR = Path("..", "charlie-data", "data")
 MIN_DATE = dt.date(2026, 10, 12)
+PUBLIC_DIR = Path("public")
 RAW_DATA_DIR = DATA_DIR / "raw"
 
 
@@ -250,7 +251,7 @@ def write_user_json_files(
     last_fetch: str,
 ) -> None:
     """Write per-user JSON files to the public users directory."""
-    output_dir = Path("public", "users")
+    output_dir = PUBLIC_DIR / "users"
     output_dir.mkdir(parents=True, exist_ok=True)
 
     for username, public_id in inputs.user_public_ids.items():
