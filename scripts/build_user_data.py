@@ -15,7 +15,7 @@ class UserDataInputs:
 
     user_public_ids: dict[str, str]
     daily_steps_by_user: dict[str, dict[str, int]]
-    daily_ranks: dict[str, int]
+    daily_stats: dict[str, dict[str, int | None]]
     weekly_stats: dict[str, dict[str, int | float | None]]
     streaks_5k_stats: dict[str, dict[str, int | dt.date | None]]
 
@@ -52,12 +52,12 @@ def calculate_5k_streaks_stats(
     return streaks_stats
 
 
-def calculate_daily_ranks(
+def calculate_daily_stats(
     daily_steps_by_user: dict[str, dict[str, int]],
     last_fetch: str,
     registered_users: set[str],
-) -> dict[str, int]:
-    """Calculate daily ranks for registered users with nonzero steps."""
+) -> dict[str, dict[str, int | None]]:
+    """Calculate today's steps and daily ranks for registered users."""
     latest_date_key = last_fetch[5:10].replace("-", "/")
     steps_by_user = {
         user: daily_steps_by_user.get(user, {}).get(latest_date_key, 0)
@@ -66,7 +66,13 @@ def calculate_daily_ranks(
 
     daily_ranks = rank_users(steps_by_user)
 
-    return daily_ranks
+    return {
+        user: {
+            "todaySteps": steps_by_user.get(user, 0),
+            "dailyRank": daily_ranks.get(user),
+        }
+        for user in registered_users
+    }
 
 
 def calculate_user_5k_streaks(
@@ -253,7 +259,9 @@ def write_user_json_files(
             "lastFetch": last_fetch,
             "dailySteps": inputs.daily_steps_by_user.get(username, {}),
             "stats": {
-                "dailyRank": inputs.daily_ranks.get(username),
+                "dailyRank": inputs.daily_stats.get(username, {}).get(
+                    "dailyRank"
+                ),
                 "weeklyAverage": inputs.weekly_stats.get(username, {}).get(
                     "weeklyAverage", 0
                 ),
@@ -318,7 +326,7 @@ def main() -> None:
 
     daily_steps_by_user = load_daily_steps_by_user(registered_users)
 
-    daily_ranks = calculate_daily_ranks(
+    daily_stats = calculate_daily_stats(
         daily_steps_by_user, last_fetch, registered_users
     )
     weekly_stats = calculate_weekly_stats(
@@ -334,7 +342,7 @@ def main() -> None:
         UserDataInputs(
             user_public_ids,
             daily_steps_by_user,
-            daily_ranks,
+            daily_stats,
             weekly_stats,
             streaks_5k_stats,
         ),

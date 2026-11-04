@@ -27,7 +27,7 @@ def test_calculate_5k_streaks_stats() -> None:
     assert stats["user3"]["longest5kStreakRank"] is None
 
 
-def test_calculate_daily_ranks() -> None:
+def test_calculate_daily_stats() -> None:
     daily_steps_by_user = {
         "user1": {"10/28": 8000},
         "user2": {"10/28": 10000},
@@ -36,11 +36,16 @@ def test_calculate_daily_ranks() -> None:
         "user5": {"10/28": 13000},
     }
 
-    assert build_user_data.calculate_daily_ranks(
+    assert build_user_data.calculate_daily_stats(
         daily_steps_by_user,
         "2026-10-28T23:05:02",
         {"user1", "user2", "user3", "user4"},
-    ) == {"user1": 2, "user2": 1}
+    ) == {
+        "user1": {"todaySteps": 8000, "dailyRank": 2},
+        "user2": {"todaySteps": 10000, "dailyRank": 1},
+        "user3": {"todaySteps": 0, "dailyRank": None},
+        "user4": {"todaySteps": 0, "dailyRank": None},
+    }
 
 
 def test_calculate_user_5k_streaks() -> None:
@@ -189,7 +194,7 @@ def test_write_user_json_files(
         build_user_data.UserDataInputs(
             {"user1": "token1", "user2": "token2"},
             {"user1": {"10/10": 10000}},
-            {"user1": 1},
+            {"user1": {"todaySteps": 10000, "dailyRank": 1}},
             {"user1": {"weeklyAverage": 9935.0, "weeklyRank": 1}},
             {
                 "user1": {
