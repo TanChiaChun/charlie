@@ -185,33 +185,7 @@ def load_daily_steps_by_user(
     """
     daily_steps_by_user: dict[str, dict[str, int]] = {}
 
-    raw_data_dirs = sorted(RAW_DATA_DIR.iterdir())
-    for raw_data_dir in raw_data_dirs:
-        user_latest_steps = load_user_latest_steps(
-            raw_data_dir, registered_users
-        )
-        for username, steps_by_date in user_latest_steps.items():
-            daily_steps_by_user.setdefault(username, {}).update(steps_by_date)
-
-    return daily_steps_by_user
-
-
-def load_user_latest_steps(
-    raw_data_dir: Path, registered_users: set[str]
-) -> dict[str, dict[str, int]]:
-    """Load the latest available steps for each registered user.
-
-    Args:
-        raw_data_dir: Directory containing raw CSV files.
-        registered_users: Usernames to include.
-
-    Returns:
-        Mapping of usernames to their latest steps, with dates as keys and step
-        counts as values.
-    """
-    csv_paths = sorted(raw_data_dir.iterdir(), reverse=True)
-
-    user_latest_steps = {}
+    csv_paths = sorted(RAW_DATA_DIR.glob("*/*.csv"), reverse=True)
     for csv_path in csv_paths:
         with open(csv_path, encoding="utf-8", newline="") as csv_file:
             csv_reader = csv.reader(csv_file)
@@ -219,17 +193,15 @@ def load_user_latest_steps(
             for username, steps, date in csv_reader:
                 if (
                     username not in registered_users
-                    or username in user_latest_steps
+                    or parse_date_string(date, 2026) < MIN_DATE
                 ):
                     continue
 
-                if parse_date_string(date, 2026) >= MIN_DATE:
-                    user_latest_steps[username] = {date: int(steps)}
+                user_steps = daily_steps_by_user.setdefault(username, {})
+                if date not in user_steps:
+                    user_steps[date] = int(steps)
 
-        if user_latest_steps.keys() >= registered_users:
-            break
-
-    return user_latest_steps
+    return daily_steps_by_user
 
 
 def load_user_public_ids() -> dict[str, str]:
