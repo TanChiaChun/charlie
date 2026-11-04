@@ -243,15 +243,7 @@ def write_user_json_files(
     inputs: UserDataInputs,
     last_fetch: str,
 ) -> None:
-    """Write per-user JSON files to the public users directory.
-
-    Args:
-        user_public_ids: Mapping of usernames to public IDs.
-        daily_steps_by_user: Mapping of usernames to daily step counts.
-        last_fetch: Timestamp of the latest raw data in ISO format.
-        daily_ranks: Mapping of usernames to their daily ranks.
-        weekly_stats: Mapping of usernames to their weekly averages and ranks.
-    """
+    """Write per-user JSON files to the public users directory."""
     output_dir = Path("public", "users")
     output_dir.mkdir(parents=True, exist_ok=True)
 
