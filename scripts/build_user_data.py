@@ -28,7 +28,7 @@ RAW_DATA_DIR = DATA_DIR / "raw"
 
 def calculate_5k_streaks_stats(
     daily_steps_by_user: dict[str, dict[str, int]],
-    today: dt.date,
+    last_fetch_date: dt.date,
     registered_users: set[str],
 ) -> dict[str, dict[str, int | dt.date | None]]:
     """Calculate 5K streak statistics and longest-streak rankings for users."""
@@ -39,7 +39,9 @@ def calculate_5k_streaks_stats(
             parse_date_string(date, 2026): steps
             for date, steps in daily_steps_by_user.get(user, {}).items()
         }
-        streaks_stats[user] = calculate_user_5k_streaks(daily_steps, today)
+        streaks_stats[user] = calculate_user_5k_streaks(
+            daily_steps, last_fetch_date
+        )
 
     ranks = rank_users(
         {
@@ -55,11 +57,11 @@ def calculate_5k_streaks_stats(
 
 def calculate_daily_stats(
     daily_steps_by_user: dict[str, dict[str, int]],
-    today: dt.date,
+    last_fetch_date: dt.date,
     registered_users: set[str],
 ) -> dict[str, dict[str, int | None]]:
     """Calculate today's steps and daily ranks for registered users."""
-    latest_date_key = today.strftime("%m/%d")
+    latest_date_key = last_fetch_date.strftime("%m/%d")
     steps_by_user = {
         user: daily_steps_by_user.get(user, {}).get(latest_date_key, 0)
         for user in registered_users
@@ -348,7 +350,7 @@ def write_user_json_files(
 def main() -> None:
     """Main function."""
     last_fetch = get_last_fetch()
-    today = dt.datetime.fromisoformat(last_fetch).date()
+    last_fetch_date = dt.datetime.fromisoformat(last_fetch).date()
 
     user_public_ids = load_user_public_ids()
     registered_users = set(user_public_ids)
@@ -356,15 +358,15 @@ def main() -> None:
     daily_steps_by_user = load_daily_steps_by_user(registered_users)
 
     daily_stats = calculate_daily_stats(
-        daily_steps_by_user, today, registered_users
+        daily_steps_by_user, last_fetch_date, registered_users
     )
     weekly_stats = calculate_weekly_stats(
         daily_steps_by_user,
-        today,
+        last_fetch_date,
         registered_users,
     )
     streaks_5k_stats = calculate_5k_streaks_stats(
-        daily_steps_by_user, today, registered_users
+        daily_steps_by_user, last_fetch_date, registered_users
     )
 
     write_user_json_files(
