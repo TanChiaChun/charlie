@@ -15,7 +15,7 @@ class UserDataInputs:
 
     user_public_ids: dict[str, str]
     daily_steps_by_user: dict[str, dict[str, int]]
-    daily_stats: dict[str, dict[str, int | None]]
+    daily_stats: dict[dt.date, dict[str, dict[str, int | None]]]
     weekly_stats: dict[str, dict[str, int | float | None]]
     streaks_5k_stats: dict[str, dict[str, int | dt.date | None]]
 
@@ -59,23 +59,29 @@ def calculate_daily_stats(
     daily_steps_by_user: dict[str, dict[str, int]],
     last_fetch_date: dt.date,
     registered_users: set[str],
-) -> dict[str, dict[str, int | None]]:
-    """Calculate today's steps and daily ranks for registered users."""
-    latest_date_key = last_fetch_date.strftime("%m/%d")
-    steps_by_user = {
-        user: daily_steps_by_user.get(user, {}).get(latest_date_key, 0)
-        for user in registered_users
-    }
+    num_days: int = 2,
+) -> dict[dt.date, dict[str, dict[str, int | None]]]:
+    """Calculate daily steps and ranks for registered users."""
+    daily_stats = {}
 
-    daily_ranks = rank_users(steps_by_user)
+    for offset in range(num_days):
+        target_date = last_fetch_date - dt.timedelta(days=offset)
+        target_date_key = target_date.strftime("%m/%d")
 
-    return {
-        user: {
-            "todaySteps": steps_by_user.get(user, 0),
-            "dailyRank": daily_ranks.get(user),
+        steps_by_user = {
+            user: daily_steps_by_user.get(user, {}).get(target_date_key, 0)
+            for user in registered_users
         }
-        for user in registered_users
-    }
+        daily_ranks = rank_users(steps_by_user)
+        daily_stats[target_date] = {
+            user: {
+                "todaySteps": steps_by_user.get(user, 0),
+                "dailyRank": daily_ranks.get(user),
+            }
+            for user in registered_users
+        }
+
+    return daily_stats
 
 
 def calculate_user_5k_streaks(
@@ -249,25 +255,28 @@ def rank_users(user_scores: Mapping[str, int | float]) -> dict[str, int]:
 
 
 def write_leaderboard_json_file(
-    daily_stats: dict[str, dict[str, int | None]],
+    daily_stats: dict[dt.date, dict[str, dict[str, int | None]]],
 ) -> None:
     """Write leaderboard data to a JSON file."""
-    sorted_daily_stats = sorted(
-        (
-            (user, stats)
-            for user, stats in daily_stats.items()
-            if stats["dailyRank"] is not None
-        ),
-        key=lambda x: (x[1]["dailyRank"], x[0].casefold()),
-    )
-    daily_leaderboard = [
-        {
-            "rank": stats["dailyRank"],
-            "steps": stats["todaySteps"],
-            "username": user,
-        }
-        for user, stats in sorted_daily_stats[:10]
-    ]
+    daily_leaderboard = {}
+    for date, user_stats in daily_stats.items():
+        sorted_user_stats = sorted(
+            (
+                (user, stats)
+                for user, stats in user_stats.items()
+                if stats["dailyRank"] is not None
+            ),
+            key=lambda x: (x[1]["dailyRank"], x[0].casefold()),
+        )
+        daily_leaderboard[date.isoformat()] = [
+            {
+                "rank": stats["dailyRank"],
+                "steps": stats["todaySteps"],
+                "username": user,
+            }
+            for user, stats in sorted_user_stats[:10]
+        ]
+
     leaderboard_data = {"daily": daily_leaderboard}
 
     PUBLIC_DIR.mkdir(exist_ok=True)
@@ -279,6 +288,7 @@ def write_leaderboard_json_file(
 def write_user_json_files(
     inputs: UserDataInputs,
     last_fetch: str,
+    last_fetch_date: dt.date,
 ) -> None:
     """Write per-user JSON files to the public users directory."""
     output_dir = PUBLIC_DIR / "users"
@@ -290,9 +300,9 @@ def write_user_json_files(
             "lastFetch": last_fetch,
             "dailySteps": inputs.daily_steps_by_user.get(username, {}),
             "stats": {
-                "dailyRank": inputs.daily_stats.get(username, {}).get(
-                    "dailyRank"
-                ),
+                "dailyRank": inputs.daily_stats[last_fetch_date]
+                .get(username, {})
+                .get("dailyRank"),
                 "weeklyAverage": inputs.weekly_stats.get(username, {}).get(
                     "weeklyAverage", 0
                 ),
@@ -378,6 +388,7 @@ def main() -> None:
             streaks_5k_stats,
         ),
         last_fetch,
+        last_fetch_date,
     )
     write_leaderboard_json_file(daily_stats)
 

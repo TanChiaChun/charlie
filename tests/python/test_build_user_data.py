@@ -41,10 +41,18 @@ def test_calculate_daily_stats() -> None:
         dt.date(2026, 10, 28),
         {"user1", "user2", "user3", "user4"},
     ) == {
-        "user1": {"todaySteps": 8000, "dailyRank": 2},
-        "user2": {"todaySteps": 10000, "dailyRank": 1},
-        "user3": {"todaySteps": 0, "dailyRank": None},
-        "user4": {"todaySteps": 0, "dailyRank": None},
+        dt.date(2026, 10, 28): {
+            "user1": {"todaySteps": 8000, "dailyRank": 2},
+            "user2": {"todaySteps": 10000, "dailyRank": 1},
+            "user3": {"todaySteps": 0, "dailyRank": None},
+            "user4": {"todaySteps": 0, "dailyRank": None},
+        },
+        dt.date(2026, 10, 27): {
+            "user1": {"todaySteps": 0, "dailyRank": None},
+            "user2": {"todaySteps": 0, "dailyRank": None},
+            "user3": {"todaySteps": 0, "dailyRank": None},
+            "user4": {"todaySteps": 12000, "dailyRank": 1},
+        },
     }
 
 
@@ -190,25 +198,30 @@ def test_write_leaderboard_json_file(
 ) -> None:
     monkeypatch.setattr(build_user_data, "PUBLIC_DIR", tmp_path)
 
-    daily_stats: dict[str, dict[str, int | None]] = {
-        "user1": {"todaySteps": 10339, "dailyRank": 1},
-        "user2": {"todaySteps": 6215, "dailyRank": 3},
-        "User3": {"todaySteps": 10339, "dailyRank": 1},
-        "user9": {"todaySteps": 5159, "dailyRank": 5},
-        "user5": {"todaySteps": 2663, "dailyRank": 9},
-        "user11": {"todaySteps": 2351, "dailyRank": 11},
-        "user8": {"todaySteps": 3318, "dailyRank": 8},
-        "user12": {"todaySteps": 0, "dailyRank": None},
-        "user10": {"todaySteps": 5060, "dailyRank": 6},
-        "user7": {"todaySteps": 3592, "dailyRank": 7},
-        "user6": {"todaySteps": 2515, "dailyRank": 10},
-        "user4": {"todaySteps": 5818, "dailyRank": 4},
+    daily_stats: dict[dt.date, dict[str, dict[str, int | None]]] = {
+        dt.date(2026, 11, 6): {},
+        dt.date(2026, 11, 5): {
+            "user1": {"todaySteps": 10339, "dailyRank": 1},
+            "user2": {"todaySteps": 6215, "dailyRank": 3},
+            "User3": {"todaySteps": 10339, "dailyRank": 1},
+            "user9": {"todaySteps": 5159, "dailyRank": 5},
+            "user5": {"todaySteps": 2663, "dailyRank": 9},
+            "user11": {"todaySteps": 2351, "dailyRank": 11},
+            "user8": {"todaySteps": 3318, "dailyRank": 8},
+            "user12": {"todaySteps": 0, "dailyRank": None},
+            "user10": {"todaySteps": 5060, "dailyRank": 6},
+            "user7": {"todaySteps": 3592, "dailyRank": 7},
+            "user6": {"todaySteps": 2515, "dailyRank": 10},
+            "user4": {"todaySteps": 5818, "dailyRank": 4},
+        },
     }
     build_user_data.write_leaderboard_json_file(daily_stats)
 
     result = json.loads((tmp_path / "leaderboard.json").read_text())
-    assert len(result["daily"]) == 10
-    assert result["daily"] == [
+    assert len(result["daily"]) == 2
+    assert len(result["daily"]["2026-11-06"]) == 0
+    assert len(result["daily"]["2026-11-05"]) == 10
+    assert result["daily"]["2026-11-05"] == [
         {"rank": 1, "steps": 10339, "username": "user1"},
         {"rank": 1, "steps": 10339, "username": "User3"},
         {"rank": 3, "steps": 6215, "username": "user2"},
@@ -231,7 +244,11 @@ def test_write_user_json_files(
         build_user_data.UserDataInputs(
             {"user1": "token1", "user2": "token2"},
             {"user1": {"10/10": 10000}},
-            {"user1": {"todaySteps": 10000, "dailyRank": 1}},
+            {
+                dt.date(2026, 10, 26): {
+                    "user1": {"todaySteps": 10000, "dailyRank": 1}
+                }
+            },
             {"user1": {"weeklyAverage": 9935.0, "weeklyRank": 1}},
             {
                 "user1": {
@@ -246,6 +263,7 @@ def test_write_user_json_files(
             },
         ),
         "2026-10-26T17:05:02",
+        dt.date(2026, 10, 26),
     )
 
     output_dir = Path("public", "users")
