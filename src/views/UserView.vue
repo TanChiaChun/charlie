@@ -170,7 +170,7 @@ watch(
 
     <Card class="shadow-none">
       <CardContent>
-        <DailyStepsChart :daily-steps />
+        <DailyStepsChart :data="dailySteps" />
       </CardContent>
     </Card>
   </div>
