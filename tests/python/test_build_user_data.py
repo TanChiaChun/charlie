@@ -38,7 +38,7 @@ def test_calculate_daily_stats() -> None:
 
     assert build_user_data.calculate_daily_stats(
         daily_steps_by_user,
-        "2026-10-28T23:05:02",
+        dt.date(2026, 10, 28),
         {"user1", "user2", "user3", "user4"},
     ) == {
         "user1": {"todaySteps": 8000, "dailyRank": 2},

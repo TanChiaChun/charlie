@@ -55,11 +55,11 @@ def calculate_5k_streaks_stats(
 
 def calculate_daily_stats(
     daily_steps_by_user: dict[str, dict[str, int]],
-    last_fetch: str,
+    today: dt.date,
     registered_users: set[str],
 ) -> dict[str, dict[str, int | None]]:
     """Calculate today's steps and daily ranks for registered users."""
-    latest_date_key = last_fetch[5:10].replace("-", "/")
+    latest_date_key = today.strftime("%m/%d")
     steps_by_user = {
         user: daily_steps_by_user.get(user, {}).get(latest_date_key, 0)
         for user in registered_users
@@ -356,7 +356,7 @@ def main() -> None:
     daily_steps_by_user = load_daily_steps_by_user(registered_users)
 
     daily_stats = calculate_daily_stats(
-        daily_steps_by_user, last_fetch, registered_users
+        daily_steps_by_user, today, registered_users
     )
     weekly_stats = calculate_weekly_stats(
         daily_steps_by_user,
