@@ -215,9 +215,12 @@ def test_write_leaderboard_json_file(
             "user4": {"todaySteps": 5818, "dailyRank": 4},
         },
     }
-    build_user_data.write_leaderboard_json_file(daily_stats)
+    build_user_data.write_leaderboard_json_file(
+        daily_stats, "2026-11-06T07:05:02"
+    )
 
     result = json.loads((tmp_path / "leaderboard.json").read_text())
+    assert result["lastFetch"] == "2026-11-06T07:05:02"
     assert len(result["daily"]) == 2
     assert len(result["daily"]["2026-11-06"]) == 0
     assert len(result["daily"]["2026-11-05"]) == 10

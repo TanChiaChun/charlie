@@ -256,6 +256,7 @@ def rank_users(user_scores: Mapping[str, int | float]) -> dict[str, int]:
 
 def write_leaderboard_json_file(
     daily_stats: dict[dt.date, dict[str, dict[str, int | None]]],
+    last_fetch: str,
 ) -> None:
     """Write leaderboard data to a JSON file."""
     daily_leaderboard = {}
@@ -277,7 +278,7 @@ def write_leaderboard_json_file(
             for user, stats in sorted_user_stats[:10]
         ]
 
-    leaderboard_data = {"daily": daily_leaderboard}
+    leaderboard_data = {"lastFetch": last_fetch, "daily": daily_leaderboard}
 
     PUBLIC_DIR.mkdir(exist_ok=True)
     (PUBLIC_DIR / "leaderboard.json").write_text(
@@ -390,7 +391,7 @@ def main() -> None:
         last_fetch,
         last_fetch_date,
     )
-    write_leaderboard_json_file(daily_stats)
+    write_leaderboard_json_file(daily_stats, last_fetch)
 
 
 if __name__ == "__main__":
