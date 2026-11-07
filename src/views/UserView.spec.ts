@@ -9,7 +9,7 @@ import StatsCard from '@/components/StatsCard.vue'
 
 import UserView from './UserView.vue'
 
-describe('UserView.spec.ts', () => {
+describe('UserView', () => {
   let router: Router
 
   beforeEach(async () => {
