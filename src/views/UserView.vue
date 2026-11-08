@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
 import DailyStepsChart from '@/components/DailyStepsChart.vue'
+import PageHeader from '@/components/PageHeader.vue'
 import StatsCard from '@/components/StatsCard.vue'
 import { Card, CardContent } from '@/components/ui/card'
 
@@ -41,18 +42,6 @@ const current5kStreak = ref<number>(0)
 const current5kStreakStart = ref<Date | null>(null)
 const current5kStreakEnd = ref<Date | null>(null)
 
-const formattedLastFetch = computed(() => {
-  if (!lastFetch.value) {
-    return ''
-  }
-
-  return lastFetch.value.toLocaleString('en-SG', {
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  })
-})
 const todaySteps = computed(() => {
   return (
     dailySteps.value.find(
@@ -160,12 +149,11 @@ watch(
   <div v-if="status === 'pending'">Loading...</div>
   <div v-else-if="status === 'error'">Failed to load user data.</div>
   <div v-else class="space-y-5">
-    <div>
-      <h1 class="text-lg font-bold sm:text-xl">Hello, {{ username }}</h1>
-      <p class="text-muted-foreground text-xs sm:text-sm">
-        Last updated: {{ formattedLastFetch }}
-      </p>
-    </div>
+    <PageHeader
+      v-if="username"
+      :title="`Hello, ${username}`"
+      :last-updated="lastFetch ?? undefined"
+    />
 
     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
       <StatsCard
