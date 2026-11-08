@@ -28,20 +28,20 @@ interface UserData {
 }
 
 const status = ref<'pending' | 'success' | 'error'>('pending')
-const username = ref<string | null>(null)
-const lastFetch = ref<Date | null>(null)
-const dailySteps = ref<{ date: Date; steps: number }[]>([])
-const dailyRank = ref<number | null>(null)
-const weeklyAverage = ref<number>(0)
-const weeklyRank = ref<number | null>(null)
-const longest5kStreak = ref<number>(0)
-const longest5kStreakRank = ref<number | null>(null)
-const longest5kStreakStart = ref<Date | null>(null)
-const longest5kStreakEnd = ref<Date | null>(null)
-const current5kStreak = ref<number>(0)
-const current5kStreakStart = ref<Date | null>(null)
-const current5kStreakEnd = ref<Date | null>(null)
+const userData = ref<UserData | null>(null)
 
+const lastFetch = computed(() =>
+  userData.value?.lastFetch ? new Date(userData.value.lastFetch) : null,
+)
+const dailySteps = computed(() =>
+  Object.entries(userData.value?.dailySteps ?? {}).map(([date, steps]) => ({
+    date: new Date(`2026/${date}`),
+    steps,
+  })),
+)
+const weeklyAverage = computed(() =>
+  Math.floor(userData.value?.stats.weeklyAverage ?? 0),
+)
 const todaySteps = computed(() => {
   return (
     dailySteps.value.find(
@@ -63,12 +63,18 @@ const weekRange = computed(() => {
 
   return `${formatDate(start)} - ${formatDate(end)}`
 })
-const longest5kStreakRange = computed(() =>
-  formatDateRange(longest5kStreakStart.value, longest5kStreakEnd.value),
-)
-const current5kStreakRange = computed(() =>
-  formatDateRange(current5kStreakStart.value, current5kStreakEnd.value),
-)
+const longest5kStreakRange = computed(() => {
+  const { longest5kStreakStart, longest5kStreakEnd } =
+    userData.value?.stats ?? {}
+
+  return formatDateRange(longest5kStreakStart, longest5kStreakEnd)
+})
+const current5kStreakRange = computed(() => {
+  const { current5kStreakStart, current5kStreakEnd } =
+    userData.value?.stats ?? {}
+
+  return formatDateRange(current5kStreakStart, current5kStreakEnd)
+})
 
 function formatDate(date: Date): string {
   return date.toLocaleDateString('en-SG', {
@@ -76,12 +82,15 @@ function formatDate(date: Date): string {
     month: 'short',
   })
 }
-function formatDateRange(start: Date | null, end: Date | null): string {
+function formatDateRange(
+  start: string | null | undefined,
+  end: string | null | undefined,
+): string {
   if (!start || !end) {
     return ''
   }
 
-  return `${formatDate(start)} - ${formatDate(end)}`
+  return `${formatDate(new Date(start))} - ${formatDate(new Date(end))}`
 }
 
 async function loadUserData(id: string): Promise<void> {
@@ -96,35 +105,7 @@ async function loadUserData(id: string): Promise<void> {
       throw new Error(`Failed to fetch user data: ${response.status}`)
     }
 
-    const result: UserData = await response.json()
-
-    username.value = result.username
-    lastFetch.value = new Date(result.lastFetch)
-    dailySteps.value = Object.entries(result.dailySteps).map(
-      ([date, steps]) => ({
-        date: new Date(`2026/${date}`),
-        steps,
-      }),
-    )
-    dailyRank.value = result.stats.dailyRank
-    weeklyAverage.value = Math.floor(result.stats.weeklyAverage)
-    weeklyRank.value = result.stats.weeklyRank
-    longest5kStreak.value = result.stats.longest5kStreak
-    longest5kStreakRank.value = result.stats.longest5kStreakRank
-    longest5kStreakStart.value = result.stats.longest5kStreakStart
-      ? new Date(result.stats.longest5kStreakStart)
-      : null
-    longest5kStreakEnd.value = result.stats.longest5kStreakEnd
-      ? new Date(result.stats.longest5kStreakEnd)
-      : null
-    current5kStreak.value = result.stats.current5kStreak
-    current5kStreakStart.value = result.stats.current5kStreakStart
-      ? new Date(result.stats.current5kStreakStart)
-      : null
-    current5kStreakEnd.value = result.stats.current5kStreakEnd
-      ? new Date(result.stats.current5kStreakEnd)
-      : null
-
+    userData.value = await response.json()
     status.value = 'success'
   } catch {
     status.value = 'error'
@@ -148,10 +129,9 @@ watch(
 <template>
   <div v-if="status === 'pending'">Loading...</div>
   <div v-else-if="status === 'error'">Failed to load user data.</div>
-  <div v-else class="space-y-5">
+  <div v-else-if="userData" class="space-y-5">
     <PageHeader
-      v-if="username"
-      :title="`Hello, ${username}`"
+      :title="`Hello, ${userData.username}`"
       :last-updated="lastFetch ?? undefined"
     />
 
@@ -160,13 +140,13 @@ watch(
         title="Today"
         :value="todaySteps"
         unit="steps"
-        :rank="dailyRank"
+        :rank="userData.stats.dailyRank"
       />
       <StatsCard
         title="This Week"
         :value="weeklyAverage"
         unit="steps/day"
-        :rank="weeklyRank"
+        :rank="userData.stats.weeklyRank"
         :subtitle="weekRange"
       />
     </div>
@@ -174,15 +154,15 @@ watch(
     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
       <StatsCard
         title="Current 5K Streak"
-        :value="current5kStreak"
+        :value="userData.stats.current5kStreak"
         unit="days"
         :subtitle="current5kStreakRange"
       />
       <StatsCard
         title="Longest 5K Streak"
-        :value="longest5kStreak"
+        :value="userData.stats.longest5kStreak"
         unit="days"
-        :rank="longest5kStreakRank"
+        :rank="userData.stats.longest5kStreakRank"
         :subtitle="longest5kStreakRange"
       />
     </div>
