@@ -94,6 +94,7 @@ function formatDateRange(
 
 async function loadUserData(id: string): Promise<void> {
   status.value = 'pending'
+  userData.value = null
 
   try {
     const response = await fetch(
@@ -107,6 +108,7 @@ async function loadUserData(id: string): Promise<void> {
     userData.value = await response.json()
     status.value = 'success'
   } catch {
+    userData.value = null
     status.value = 'error'
   }
 }
