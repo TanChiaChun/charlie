@@ -14,6 +14,7 @@ describe('LeaderboardView', () => {
 
   test('displays the latest available daily leaderboard', async () => {
     const mockLeaderboardData = {
+      lastFetch: '2026-11-06T20:05:02',
       daily: {
         '2026-11-06': [],
         '2026-11-05': [
@@ -38,6 +39,10 @@ describe('LeaderboardView', () => {
     const wrapper = mount(LeaderboardView)
     await flushPromises()
 
+    const text = wrapper.text()
+    expect(text).toContain('Leaderboard')
+    expect(text).toContain('Last updated: 6 Nov, 8:05 pm')
+
     const leaderboardItems = wrapper.findAllComponents(LeaderboardItem)
     expect(leaderboardItems).toHaveLength(10)
 
@@ -51,6 +56,7 @@ describe('LeaderboardView', () => {
 
   test('displays all available records when fewer than 10 exist', async () => {
     const mockLeaderboardData = {
+      lastFetch: '2026-11-06T20:05:02',
       daily: {
         '2026-11-06': [{ rank: 1, steps: 589, username: 'User9' }],
         '2026-11-05': [

@@ -2,15 +2,22 @@
 import { computed, onMounted, ref } from 'vue'
 
 import LeaderboardItem from '@/components/LeaderboardItem.vue'
+import PageHeader from '@/components/PageHeader.vue'
 import type { LeaderboardRecord } from '@/types/leaderboard'
 
 interface LeaderboardData {
+  lastFetch: string
   daily: Record<string, LeaderboardRecord[]>
 }
 
 const status = ref<'pending' | 'success' | 'error'>('pending')
 const leaderboardData = ref<LeaderboardData | null>(null)
 
+const lastUpdated = computed(() =>
+  leaderboardData.value?.lastFetch
+    ? new Date(leaderboardData.value.lastFetch)
+    : undefined,
+)
 const latestDailyRecords = computed(() => {
   const daily = leaderboardData.value?.daily ?? {}
   const dates = Object.keys(daily).sort().reverse()
@@ -46,12 +53,15 @@ onMounted(async () => {
 <template>
   <div v-if="status === 'pending'">Loading...</div>
   <div v-else-if="status === 'error'">Failed to load leaderboard data.</div>
-  <div v-else class="flex flex-col gap-6 sm:gap-7" data-testid="leaderboard">
-    <LeaderboardItem
-      v-for="record in latestDailyRecords"
-      :key="record.username"
-      :record="record"
-      :max-steps="maxDailySteps"
-    />
+  <div v-else class="space-y-5">
+    <PageHeader title="Leaderboard" :last-updated />
+    <div class="flex flex-col gap-6 sm:gap-7" data-testid="leaderboard">
+      <LeaderboardItem
+        v-for="record in latestDailyRecords"
+        :key="record.username"
+        :record="record"
+        :max-steps="maxDailySteps"
+      />
+    </div>
   </div>
 </template>

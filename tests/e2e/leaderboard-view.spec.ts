@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test'
 
 test('displays the latest available daily leaderboard', async ({ page }) => {
   const leaderboardData = {
+    lastFetch: '2026-11-06T20:05:02',
     daily: {
       '2026-11-06': [],
       '2026-11-05': [
@@ -27,6 +28,9 @@ test('displays the latest available daily leaderboard', async ({ page }) => {
   await page.goto('/#/leaderboard')
 
   await expect(page.getByText('Loading...')).toBeVisible()
+
+  await expect(page.getByRole('heading', { name: 'Leaderboard' })).toBeVisible()
+  await expect(page.getByText('Last updated: 6 Nov')).toBeVisible()
 
   const leaderboard = page.getByTestId('leaderboard')
   await expect(leaderboard).toBeVisible()
