@@ -39,9 +39,6 @@ const dailySteps = computed(() =>
     steps,
   })),
 )
-const weeklyAverage = computed(() =>
-  Math.floor(userData.value?.stats.weeklyAverage ?? 0),
-)
 const todaySteps = computed(
   () =>
     dailySteps.value.find(
@@ -49,6 +46,9 @@ const todaySteps = computed(
         date.getMonth() === lastFetch.value?.getMonth() &&
         date.getDate() === lastFetch.value?.getDate(),
     )?.steps ?? 0,
+)
+const weeklyAverage = computed(() =>
+  Math.floor(userData.value?.stats.weeklyAverage ?? 0),
 )
 const weekRange = computed(() => {
   if (!lastFetch.value) {
