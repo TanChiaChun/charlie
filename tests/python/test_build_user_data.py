@@ -81,17 +81,17 @@ def test_calculate_user_5k_streaks() -> None:
 def test_calculate_weekly_stats() -> None:
     daily_steps_by_user = {
         "user1": {
-            "10/25": 10397,
+            "10/25": 3500,
             "10/26": 10190,
             "10/27": 9680,
         },
         "user2": {
-            "10/25": 3432,
+            "10/25": 2100,
             "10/26": 5316,
             "10/27": 14964,
         },
         "user3": {
-            "10/25": 12285,
+            "10/25": 5600,
         },
         "user4": {
             "10/26": 5702,
@@ -102,9 +102,21 @@ def test_calculate_weekly_stats() -> None:
         dt.date(2026, 10, 27),
         {"user1", "user2", "user3"},
     ) == {
-        "user2": {"weeklyAverage": 10140.0, "weeklyRank": 1},
-        "user1": {"weeklyAverage": 9935.0, "weeklyRank": 2},
-        "user3": {"weeklyAverage": 0.0, "weeklyRank": None},
+        dt.date(2026, 10, 12): {
+            "user1": {"weeklyAverage": 0.0, "weeklyRank": None},
+            "user2": {"weeklyAverage": 0.0, "weeklyRank": None},
+            "user3": {"weeklyAverage": 0.0, "weeklyRank": None},
+        },
+        dt.date(2026, 10, 19): {
+            "user1": {"weeklyAverage": 500.0, "weeklyRank": 2},
+            "user2": {"weeklyAverage": 300.0, "weeklyRank": 3},
+            "user3": {"weeklyAverage": 800.0, "weeklyRank": 1},
+        },
+        dt.date(2026, 10, 26): {
+            "user1": {"weeklyAverage": 9935.0, "weeklyRank": 2},
+            "user2": {"weeklyAverage": 10140.0, "weeklyRank": 1},
+            "user3": {"weeklyAverage": 0.0, "weeklyRank": None},
+        },
     }
 
 
@@ -245,12 +257,41 @@ def test_write_leaderboard_json_file(
             "user4": {"todaySteps": 5818, "dailyRank": 4},
         },
     }
+    weekly_stats: dict[dt.date, dict[str, dict[str, int | float | None]]] = {
+        dt.date(2026, 10, 26): {
+            "user1": {"weeklyAverage": 16367.0, "weeklyRank": 2},
+            "user2": {"weeklyAverage": 15190.0, "weeklyRank": 5},
+            "user3": {"weeklyAverage": 13276.0, "weeklyRank": 10},
+            "user4": {"weeklyAverage": 16097.0, "weeklyRank": 3},
+            "user5": {"weeklyAverage": 14618.0, "weeklyRank": 6},
+            "user6": {"weeklyAverage": 13432.0, "weeklyRank": 9},
+            "user7": {"weeklyAverage": 18759.0, "weeklyRank": 1},
+            "user8": {"weeklyAverage": 14389.0, "weeklyRank": 7},
+            "user9": {"weeklyAverage": 13468.0, "weeklyRank": 8},
+            "user10": {"weeklyAverage": 13000.0, "weeklyRank": 11},
+            "user11": {"weeklyAverage": 15739.0, "weeklyRank": 4},
+            "user12": {"weeklyAverage": 0.0, "weeklyRank": None},
+        },
+        dt.date(2026, 11, 2): {
+            "user8": {"weeklyRank": 4, "weeklyAverage": 17086.0},
+            "user1": {"weeklyRank": 9, "weeklyAverage": 13464.0},
+            "user2": {"weeklyRank": 3, "weeklyAverage": 17890.0},
+            "user10": {"weeklyRank": 2, "weeklyAverage": 23330.0},
+            "user5": {"weeklyRank": 6, "weeklyAverage": 16294.0},
+            "user3": {"weeklyRank": 8, "weeklyAverage": 14840.0},
+            "user7": {"weeklyRank": 1, "weeklyAverage": 34088.0},
+            "user4": {"weeklyRank": 5, "weeklyAverage": 16795.0},
+            "user6": {"weeklyRank": 7, "weeklyAverage": 15436.0},
+        },
+    }
     build_user_data.write_leaderboard_json_file(
-        daily_stats, "2026-11-06T07:05:02"
+        daily_stats, weekly_stats, "2026-11-06T07:05:02"
     )
 
     result = json.loads((tmp_path / "leaderboard.json").read_text())
+
     assert result["lastFetch"] == "2026-11-06T07:05:02"
+
     assert len(result["daily"]) == 2
     assert len(result["daily"]["2026-11-06"]) == 0
     assert len(result["daily"]["2026-11-05"]) == 10
@@ -265,6 +306,22 @@ def test_write_leaderboard_json_file(
         {"rank": 8, "steps": 3318, "username": "user8"},
         {"rank": 9, "steps": 2663, "username": "user5"},
         {"rank": 10, "steps": 2515, "username": "user6"},
+    ]
+
+    assert len(result["weekly"]) == 2
+    assert len(result["weekly"]["2026-10-26"]) == 10
+    assert len(result["weekly"]["2026-11-02"]) == 9
+    assert result["weekly"]["2026-10-26"] == [
+        {"rank": 1, "averageSteps": 18759.0, "username": "user7"},
+        {"rank": 2, "averageSteps": 16367.0, "username": "user1"},
+        {"rank": 3, "averageSteps": 16097.0, "username": "user4"},
+        {"rank": 4, "averageSteps": 15739.0, "username": "user11"},
+        {"rank": 5, "averageSteps": 15190.0, "username": "user2"},
+        {"rank": 6, "averageSteps": 14618.0, "username": "user5"},
+        {"rank": 7, "averageSteps": 14389.0, "username": "user8"},
+        {"rank": 8, "averageSteps": 13468.0, "username": "user9"},
+        {"rank": 9, "averageSteps": 13432.0, "username": "user6"},
+        {"rank": 10, "averageSteps": 13276.0, "username": "user3"},
     ]
 
 
@@ -291,7 +348,14 @@ def test_write_user_json_files(
                 "user1": {"todaySteps": 14925, "dailyRank": 1}
             }
         },
-        {"user1": {"weeklyAverage": 9469.0, "weeklyRank": 10}},
+        {
+            dt.date(2026, 11, 2): {
+                "user1": {"weeklyAverage": 13432.3, "weeklyRank": 9}
+            },
+            dt.date(2026, 11, 9): {
+                "user1": {"weeklyAverage": 9469.0, "weeklyRank": 10}
+            },
+        },
         {
             "user1": {
                 "longest5kStreak": 3,
