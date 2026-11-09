@@ -125,6 +125,36 @@ def test_get_last_fetch(
     assert build_user_data.get_last_fetch() == "2026-10-26T01:05:02"
 
 
+def test_get_recent_daily_steps() -> None:
+    daily_steps = {
+        "11/09": 1664,
+        "11/08": 14925,
+        "11/07": 12897,
+        "11/06": 15683,
+        "11/05": 13358,
+        "11/04": 12773,
+        "11/03": 12330,
+        "11/02": 12060,
+        "10/31": 14668,
+        "10/30": 15049,
+    }
+    result = build_user_data.get_recent_daily_steps(
+        daily_steps, dt.date(2026, 11, 9)
+    )
+
+    assert result == {
+        "11/09": 1664,
+        "11/08": 14925,
+        "11/07": 12897,
+        "11/06": 15683,
+        "11/05": 13358,
+        "11/04": 12773,
+        "11/03": 12330,
+        "11/02": 12060,
+        "10/31": 14668,
+    }
+
+
 def test_load_daily_steps_by_user(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -254,6 +284,7 @@ def test_write_user_json_files(
                     "11/05": 13358,
                     "11/04": 12773,
                     "11/03": 12330,
+                    "10/29": 11649,
                 }
             },
             {

@@ -186,6 +186,21 @@ def get_last_fetch() -> str:
     return dt.datetime.strptime(latest_file.stem, "%Y%m%d%H%M%S").isoformat()
 
 
+def get_recent_daily_steps(
+    daily_steps: dict[str, int], last_fetch_date: dt.date
+) -> dict[str, int]:
+    """Return daily steps for the most recent 10 days."""
+    start_date = last_fetch_date - dt.timedelta(days=9)
+
+    return {
+        date: steps
+        for date, steps in daily_steps.items()
+        if start_date
+        <= parse_date_string(date, last_fetch_date.year)
+        <= last_fetch_date
+    }
+
+
 def load_daily_steps_by_user(
     registered_users: set[str],
 ) -> dict[str, dict[str, int]]:
@@ -299,7 +314,9 @@ def write_user_json_files(
         user_data = {
             "username": username,
             "lastFetch": last_fetch,
-            "dailySteps": inputs.daily_steps_by_user.get(username, {}),
+            "dailySteps": get_recent_daily_steps(
+                inputs.daily_steps_by_user.get(username, {}), last_fetch_date
+            ),
             "stats": {
                 "dailyRank": inputs.daily_stats[last_fetch_date]
                 .get(username, {})
