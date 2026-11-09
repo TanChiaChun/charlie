@@ -3,3 +3,9 @@ export interface LeaderboardRecord {
   steps: number
   username: string
 }
+
+export interface PeriodLeaderboardRecord {
+  rank: number
+  averageSteps: number
+  username: string
+}

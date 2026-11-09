@@ -42,7 +42,7 @@ describe('LeaderboardView', () => {
     const text = wrapper.text()
     expect(text).toContain('Leaderboard')
     expect(text).toContain('Last updated: 6 Nov, 8:05 pm')
-    expect(text).toContain('Daily')
+    expect(wrapper.get('h2').text()).toBe('daily')
     expect(text).toContain('5 Nov')
 
     const leaderboardItems = wrapper.findAllComponents(LeaderboardItem)
@@ -93,6 +93,46 @@ describe('LeaderboardView', () => {
 
     const firstProgressBar = leaderboardItems[0]?.get('.bg-brand')
     expect(firstProgressBar?.attributes('style')).toContain('width: 100%')
+  })
+
+  test('displays the latest available weekly leaderboard', async () => {
+    const mockLeaderboardData = {
+      lastFetch: '2026-11-10T02:05:02',
+      daily: { '2026-11-10': [{ rank: 1, steps: 2883, username: 'User1' }] },
+      weekly: {
+        '2026-10-12': [
+          { rank: 1, averageSteps: 15756.3, username: 'User1' },
+          { rank: 2, averageSteps: 15256.6, username: 'User3' },
+        ],
+        '2026-10-19': [
+          { rank: 1, averageSteps: 17026.8, username: 'WeekUser' },
+          { rank: 2, averageSteps: 15759.0, username: 'User3' },
+          { rank: 3, averageSteps: 15136.3, username: 'User1' },
+        ],
+      },
+    }
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue({ ok: true, json: async () => mockLeaderboardData })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const wrapper = mount(LeaderboardView)
+    await flushPromises()
+
+    await wrapper.get('button[role="tab"]:nth-child(2)').trigger('mousedown')
+
+    const text = wrapper.text()
+    expect(text).toContain('Leaderboard')
+    expect(text).toContain('Last updated: 10 Nov, 2:05 am')
+    expect(wrapper.get('h2').text()).toBe('weekly')
+    expect(text).toContain('19 Oct - 25 Oct')
+
+    const leaderboardItems = wrapper.findAllComponents(LeaderboardItem)
+    expect(leaderboardItems).toHaveLength(3)
+
+    const firstLeaderboardItemText = leaderboardItems[0]?.text()
+    expect(firstLeaderboardItemText).toContain('WeekUser')
+    expect(firstLeaderboardItemText).toContain('17,026')
   })
 
   test('displays loading state while fetching leaderboard data', async () => {
