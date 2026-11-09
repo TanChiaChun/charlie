@@ -36,6 +36,10 @@ test('displays user view after data loads', async ({ page }) => {
     page.getByRole('heading', { name: 'Hello, User1' }),
   ).toBeVisible()
   await expect(page.getByText('Last updated: 1 Nov')).toBeVisible()
+  await expect(
+    page.getByRole('heading', { name: 'Your Daily Steps' }),
+  ).toBeVisible()
+  await expect(page.getByText('23 Oct - 1 Nov')).toBeVisible()
 
   await expect(page.getByRole('heading', { name: 'Today' })).toBeVisible()
   await expect(page.getByText('13,668')).toBeVisible()

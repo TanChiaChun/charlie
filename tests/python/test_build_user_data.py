@@ -125,6 +125,36 @@ def test_get_last_fetch(
     assert build_user_data.get_last_fetch() == "2026-10-26T01:05:02"
 
 
+def test_get_recent_daily_steps() -> None:
+    daily_steps = {
+        "11/09": 1664,
+        "11/08": 14925,
+        "11/07": 12897,
+        "11/06": 15683,
+        "11/05": 13358,
+        "11/04": 12773,
+        "11/03": 12330,
+        "11/02": 12060,
+        "10/31": 14668,
+        "10/30": 15049,
+    }
+    result = build_user_data.get_recent_daily_steps(
+        daily_steps, dt.date(2026, 11, 9)
+    )
+
+    assert result == {
+        "11/09": 1664,
+        "11/08": 14925,
+        "11/07": 12897,
+        "11/06": 15683,
+        "11/05": 13358,
+        "11/04": 12773,
+        "11/03": 12330,
+        "11/02": 12060,
+        "10/31": 14668,
+    }
+
+
 def test_load_daily_steps_by_user(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -246,50 +276,67 @@ def test_write_user_json_files(
     build_user_data.write_user_json_files(
         build_user_data.UserDataInputs(
             {"user1": "token1", "user2": "token2"},
-            {"user1": {"10/10": 10000}},
             {
-                dt.date(2026, 10, 26): {
-                    "user1": {"todaySteps": 10000, "dailyRank": 1}
+                "user1": {
+                    "11/08": 14925,
+                    "11/07": 12897,
+                    "11/06": 15683,
+                    "11/05": 13358,
+                    "11/04": 12773,
+                    "11/03": 12330,
+                    "10/29": 11649,
                 }
             },
-            {"user1": {"weeklyAverage": 9935.0, "weeklyRank": 1}},
+            {
+                dt.date(2026, 11, 8): {
+                    "user1": {"todaySteps": 14925, "dailyRank": 1}
+                }
+            },
+            {"user1": {"weeklyAverage": 9469.0, "weeklyRank": 10}},
             {
                 "user1": {
                     "longest5kStreak": 3,
                     "longest5kStreakRank": 1,
-                    "longest5kStreakStart": dt.date(2026, 10, 23),
-                    "longest5kStreakEnd": dt.date(2026, 10, 25),
+                    "longest5kStreakStart": dt.date(2026, 11, 3),
+                    "longest5kStreakEnd": dt.date(2026, 11, 5),
                     "current5kStreak": 2,
-                    "current5kStreakStart": dt.date(2026, 10, 28),
-                    "current5kStreakEnd": dt.date(2026, 10, 29),
+                    "current5kStreakStart": dt.date(2026, 11, 7),
+                    "current5kStreakEnd": dt.date(2026, 11, 8),
                 }
             },
         ),
-        "2026-10-26T17:05:02",
-        dt.date(2026, 10, 26),
+        "2026-11-08T23:05:02",
+        dt.date(2026, 11, 8),
     )
 
     output_dir = Path("public", "users")
     assert json.loads((output_dir / "token1.json").read_text()) == {
         "username": "user1",
-        "lastFetch": "2026-10-26T17:05:02",
-        "dailySteps": {"10/10": 10000},
+        "lastFetch": "2026-11-08T23:05:02",
+        "dailySteps": {
+            "11/08": 14925,
+            "11/07": 12897,
+            "11/06": 15683,
+            "11/05": 13358,
+            "11/04": 12773,
+            "11/03": 12330,
+        },
         "stats": {
             "dailyRank": 1,
-            "weeklyAverage": 9935.0,
-            "weeklyRank": 1,
+            "weeklyAverage": 9469.0,
+            "weeklyRank": 10,
             "longest5kStreak": 3,
             "longest5kStreakRank": 1,
-            "longest5kStreakStart": "2026-10-23",
-            "longest5kStreakEnd": "2026-10-25",
+            "longest5kStreakStart": "2026-11-03",
+            "longest5kStreakEnd": "2026-11-05",
             "current5kStreak": 2,
-            "current5kStreakStart": "2026-10-28",
-            "current5kStreakEnd": "2026-10-29",
+            "current5kStreakStart": "2026-11-07",
+            "current5kStreakEnd": "2026-11-08",
         },
     }
     assert json.loads((output_dir / "token2.json").read_text()) == {
         "username": "user2",
-        "lastFetch": "2026-10-26T17:05:02",
+        "lastFetch": "2026-11-08T23:05:02",
         "dailySteps": {},
         "stats": {
             "dailyRank": None,

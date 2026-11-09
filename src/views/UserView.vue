@@ -5,7 +5,7 @@ import { useRoute } from 'vue-router'
 import DailyStepsChart from '@/components/DailyStepsChart.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import StatsCard from '@/components/StatsCard.vue'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 const route = useRoute()
 
@@ -39,9 +39,6 @@ const dailySteps = computed(() =>
     steps,
   })),
 )
-const weeklyAverage = computed(() =>
-  Math.floor(userData.value?.stats.weeklyAverage ?? 0),
-)
 const todaySteps = computed(
   () =>
     dailySteps.value.find(
@@ -49,6 +46,19 @@ const todaySteps = computed(
         date.getMonth() === lastFetch.value?.getMonth() &&
         date.getDate() === lastFetch.value?.getDate(),
     )?.steps ?? 0,
+)
+const dailyStepsRange = computed(() => {
+  if (!lastFetch.value) {
+    return ''
+  }
+
+  const start = new Date(lastFetch.value)
+  start.setDate(start.getDate() - 9)
+
+  return `${formatDate(start)} - ${formatDate(lastFetch.value)}`
+})
+const weeklyAverage = computed(() =>
+  Math.floor(userData.value?.stats.weeklyAverage ?? 0),
 )
 const weekRange = computed(() => {
   if (!lastFetch.value) {
@@ -169,6 +179,10 @@ watch(
     </div>
 
     <Card class="shadow-none">
+      <CardHeader class="flex items-center justify-between">
+        <CardTitle>Your Daily Steps</CardTitle>
+        <span class="text-muted-foreground text-sm">{{ dailyStepsRange }}</span>
+      </CardHeader>
       <CardContent>
         <DailyStepsChart :data="dailySteps" />
       </CardContent>

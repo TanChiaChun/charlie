@@ -60,7 +60,10 @@ describe('UserView', () => {
     await flushPromises()
 
     expect(wrapper.get('h1').text()).toBe('Hello, User1')
-    expect(wrapper.text()).toContain('Last updated: 1 Nov, 11:05 pm')
+    const text = wrapper.text()
+    expect(text).toContain('Last updated: 1 Nov, 11:05 pm')
+    expect(text).toContain('Your Daily Steps')
+    expect(text).toContain('23 Oct - 1 Nov')
 
     const statsCards = wrapper.findAllComponents(StatsCard)
     expect(statsCards).toHaveLength(4)
