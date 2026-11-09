@@ -178,12 +178,12 @@ watch(
       />
     </div>
 
-    <Card class="shadow-none">
-      <CardHeader class="flex items-center justify-between">
+    <Card class="py-4 shadow-none sm:py-5">
+      <CardHeader class="flex items-center justify-between px-4 sm:px-5">
         <CardTitle>Your Daily Steps</CardTitle>
         <span class="text-muted-foreground text-sm">{{ dailyStepsRange }}</span>
       </CardHeader>
-      <CardContent>
+      <CardContent class="px-4 sm:px-5">
         <DailyStepsChart :data="dailySteps" />
       </CardContent>
     </Card>
