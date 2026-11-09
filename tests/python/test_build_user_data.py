@@ -27,7 +27,7 @@ def test_calculate_5k_streaks_stats() -> None:
     assert stats["user3"]["longest5kStreakRank"] is None
 
 
-def test_calculate_daily_ranks() -> None:
+def test_calculate_daily_stats() -> None:
     daily_steps_by_user = {
         "user1": {"10/28": 8000},
         "user2": {"10/28": 10000},
@@ -36,11 +36,24 @@ def test_calculate_daily_ranks() -> None:
         "user5": {"10/28": 13000},
     }
 
-    assert build_user_data.calculate_daily_ranks(
+    assert build_user_data.calculate_daily_stats(
         daily_steps_by_user,
-        "2026-10-28T23:05:02",
+        dt.date(2026, 10, 28),
         {"user1", "user2", "user3", "user4"},
-    ) == {"user1": 2, "user2": 1}
+    ) == {
+        dt.date(2026, 10, 28): {
+            "user1": {"todaySteps": 8000, "dailyRank": 2},
+            "user2": {"todaySteps": 10000, "dailyRank": 1},
+            "user3": {"todaySteps": 0, "dailyRank": None},
+            "user4": {"todaySteps": 0, "dailyRank": None},
+        },
+        dt.date(2026, 10, 27): {
+            "user1": {"todaySteps": 0, "dailyRank": None},
+            "user2": {"todaySteps": 0, "dailyRank": None},
+            "user3": {"todaySteps": 0, "dailyRank": None},
+            "user4": {"todaySteps": 12000, "dailyRank": 1},
+        },
+    }
 
 
 def test_calculate_user_5k_streaks() -> None:
@@ -180,6 +193,51 @@ def test_rank_users() -> None:
     ) == {"user2": 1, "user1": 2, "user5": 2, "user3": 4}
 
 
+def test_write_leaderboard_json_file(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(build_user_data, "PUBLIC_DIR", tmp_path)
+
+    daily_stats: dict[dt.date, dict[str, dict[str, int | None]]] = {
+        dt.date(2026, 11, 6): {},
+        dt.date(2026, 11, 5): {
+            "user1": {"todaySteps": 10339, "dailyRank": 1},
+            "user2": {"todaySteps": 6215, "dailyRank": 3},
+            "User3": {"todaySteps": 10339, "dailyRank": 1},
+            "user9": {"todaySteps": 5159, "dailyRank": 5},
+            "user5": {"todaySteps": 2663, "dailyRank": 9},
+            "user11": {"todaySteps": 2351, "dailyRank": 11},
+            "user8": {"todaySteps": 3318, "dailyRank": 8},
+            "user12": {"todaySteps": 0, "dailyRank": None},
+            "user10": {"todaySteps": 5060, "dailyRank": 6},
+            "user7": {"todaySteps": 3592, "dailyRank": 7},
+            "user6": {"todaySteps": 2515, "dailyRank": 10},
+            "user4": {"todaySteps": 5818, "dailyRank": 4},
+        },
+    }
+    build_user_data.write_leaderboard_json_file(
+        daily_stats, "2026-11-06T07:05:02"
+    )
+
+    result = json.loads((tmp_path / "leaderboard.json").read_text())
+    assert result["lastFetch"] == "2026-11-06T07:05:02"
+    assert len(result["daily"]) == 2
+    assert len(result["daily"]["2026-11-06"]) == 0
+    assert len(result["daily"]["2026-11-05"]) == 10
+    assert result["daily"]["2026-11-05"] == [
+        {"rank": 1, "steps": 10339, "username": "user1"},
+        {"rank": 1, "steps": 10339, "username": "User3"},
+        {"rank": 3, "steps": 6215, "username": "user2"},
+        {"rank": 4, "steps": 5818, "username": "user4"},
+        {"rank": 5, "steps": 5159, "username": "user9"},
+        {"rank": 6, "steps": 5060, "username": "user10"},
+        {"rank": 7, "steps": 3592, "username": "user7"},
+        {"rank": 8, "steps": 3318, "username": "user8"},
+        {"rank": 9, "steps": 2663, "username": "user5"},
+        {"rank": 10, "steps": 2515, "username": "user6"},
+    ]
+
+
 def test_write_user_json_files(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -189,7 +247,11 @@ def test_write_user_json_files(
         build_user_data.UserDataInputs(
             {"user1": "token1", "user2": "token2"},
             {"user1": {"10/10": 10000}},
-            {"user1": 1},
+            {
+                dt.date(2026, 10, 26): {
+                    "user1": {"todaySteps": 10000, "dailyRank": 1}
+                }
+            },
             {"user1": {"weeklyAverage": 9935.0, "weeklyRank": 1}},
             {
                 "user1": {
@@ -204,6 +266,7 @@ def test_write_user_json_files(
             },
         ),
         "2026-10-26T17:05:02",
+        dt.date(2026, 10, 26),
     )
 
     output_dir = Path("public", "users")
