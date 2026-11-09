@@ -31,7 +31,7 @@ test('displays the latest available daily leaderboard', async ({ page }) => {
 
   await expect(page.getByRole('heading', { name: 'Leaderboard' })).toBeVisible()
   await expect(page.getByText('Last updated: 6 Nov')).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Daily' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'daily' })).toBeVisible()
   await expect(page.getByText('5 Nov')).toBeVisible()
 
   const leaderboard = page.getByTestId('leaderboard')
@@ -53,6 +53,43 @@ test('displays the latest available daily leaderboard', async ({ page }) => {
     'style',
     'width: 50%;',
   )
+})
+
+test('switches between daily and weekly leaderboards', async ({ page }) => {
+  const leaderboardData = {
+    lastFetch: '2026-11-10T02:05:02',
+    daily: { '2026-11-10': [{ rank: 1, steps: 2883, username: 'User1' }] },
+    weekly: {
+      '2026-10-19': [
+        { rank: 1, averageSteps: 17026.8, username: 'WeekUser' },
+        { rank: 2, averageSteps: 15759.0, username: 'User3' },
+      ],
+    },
+  }
+  await page.route('**/leaderboard.json', (route) =>
+    route.fulfill({ json: leaderboardData }),
+  )
+  await page.goto('/#/leaderboard')
+
+  const records = page.getByTestId('leaderboard').locator(':scope > div')
+  const firstRecord = records.first()
+
+  await expect(page.getByRole('heading', { name: 'daily' })).toBeVisible()
+  await expect(records).toHaveCount(1)
+  await expect(firstRecord).toContainText('User1')
+  await expect(firstRecord).toContainText('2,883')
+
+  await page.getByRole('tab', { name: 'Weekly' }).click()
+  await expect(page.getByRole('heading', { name: 'weekly' })).toBeVisible()
+  await expect(page.getByText('19 Oct - 25 Oct')).toBeVisible()
+  await expect(records).toHaveCount(2)
+  await expect(firstRecord).toContainText('WeekUser')
+  await expect(firstRecord).toContainText('17,026')
+
+  await page.getByRole('tab', { name: 'Daily' }).click()
+  await expect(page.getByRole('heading', { name: 'daily' })).toBeVisible()
+  await expect(records).toHaveCount(1)
+  await expect(firstRecord).toContainText('User1')
 })
 
 test('displays an error when leaderboard data fails to load', async ({
