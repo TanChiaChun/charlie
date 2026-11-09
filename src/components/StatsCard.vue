@@ -19,7 +19,7 @@ defineProps<{
     </CardHeader>
     <CardContent class="px-4 sm:px-5">
       <div class="flex items-baseline gap-1">
-        <p class="text-2xl font-bold sm:text-3xl">
+        <p class="text-2xl font-bold">
           {{ value.toLocaleString() }}
         </p>
         <span class="text-muted-foreground text-xs sm:text-sm">{{ unit }}</span>

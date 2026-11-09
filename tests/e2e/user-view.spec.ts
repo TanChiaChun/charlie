@@ -57,12 +57,12 @@ test('displays user view after data loads', async ({ page }) => {
 })
 
 test('displays error when URL changes to invalid user', async ({ page }) => {
-  await page.route('**/users/zocJvWkQ.json', async (route) => {
-    await route.fulfill({ json: userData })
-  })
-  await page.route('**/users/zocJvWk.json', async (route) => {
-    await route.fulfill({ status: 404 })
-  })
+  await page.route('**/users/zocJvWkQ.json', (route) =>
+    route.fulfill({ json: userData }),
+  )
+  await page.route('**/users/zocJvWk.json', (route) =>
+    route.fulfill({ status: 404 }),
+  )
 
   await page.goto('/#/users/zocJvWkQ')
   await expect(
