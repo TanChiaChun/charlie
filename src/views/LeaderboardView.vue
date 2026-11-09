@@ -18,17 +18,30 @@ const lastUpdated = computed(() =>
     ? new Date(leaderboardData.value.lastFetch)
     : undefined,
 )
-const latestDailyRecords = computed(() => {
+const latestDate = computed(() => {
   const daily = leaderboardData.value?.daily ?? {}
   const dates = Object.keys(daily).sort().reverse()
 
-  return (
-    dates
-      .map((date) => daily[date])
-      .find((records) => records !== undefined && records.length > 0) ?? []
+  return dates.find(
+    (date) => daily[date] !== undefined && daily[date]?.length > 0,
   )
 })
-const maxDailySteps = computed(() => latestDailyRecords.value[0]?.steps ?? 1)
+const formattedLatestDate = computed(() => {
+  if (!latestDate.value) {
+    return ''
+  }
+
+  return new Date(latestDate.value).toLocaleDateString('en-SG', {
+    day: 'numeric',
+    month: 'short',
+  })
+})
+const latestDailyRecords = computed(() =>
+  latestDate.value ? leaderboardData.value?.daily[latestDate.value] : [],
+)
+const maxDailySteps = computed(
+  () => latestDailyRecords.value?.at(0)?.steps ?? 1,
+)
 
 onMounted(async () => {
   try {
@@ -55,6 +68,14 @@ onMounted(async () => {
   <div v-else-if="status === 'error'">Failed to load leaderboard data.</div>
   <div v-else class="space-y-5">
     <PageHeader title="Leaderboard" :last-updated />
+
+    <div class="flex items-center justify-between">
+      <h2 class="font-semibold sm:text-lg">Daily</h2>
+      <span class="text-muted-foreground text-sm">{{
+        formattedLatestDate
+      }}</span>
+    </div>
+
     <div class="flex flex-col gap-6 sm:gap-7" data-testid="leaderboard">
       <LeaderboardItem
         v-for="record in latestDailyRecords"

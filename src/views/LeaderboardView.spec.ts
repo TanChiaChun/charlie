@@ -42,6 +42,8 @@ describe('LeaderboardView', () => {
     const text = wrapper.text()
     expect(text).toContain('Leaderboard')
     expect(text).toContain('Last updated: 6 Nov, 8:05 pm')
+    expect(text).toContain('Daily')
+    expect(text).toContain('5 Nov')
 
     const leaderboardItems = wrapper.findAllComponents(LeaderboardItem)
     expect(leaderboardItems).toHaveLength(10)

@@ -31,6 +31,8 @@ test('displays the latest available daily leaderboard', async ({ page }) => {
 
   await expect(page.getByRole('heading', { name: 'Leaderboard' })).toBeVisible()
   await expect(page.getByText('Last updated: 6 Nov')).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Daily' })).toBeVisible()
+  await expect(page.getByText('5 Nov')).toBeVisible()
 
   const leaderboard = page.getByTestId('leaderboard')
   await expect(leaderboard).toBeVisible()
