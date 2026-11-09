@@ -273,38 +273,39 @@ def test_write_user_json_files(
 ) -> None:
     monkeypatch.chdir(tmp_path)
 
+    user_data_inputs = build_user_data.UserDataInputs(
+        {"user1": "token1", "user2": "token2"},
+        {
+            "user1": {
+                "11/08": 14925,
+                "11/07": 12897,
+                "11/06": 15683,
+                "11/05": 13358,
+                "11/04": 12773,
+                "11/03": 12330,
+                "10/29": 11649,
+            }
+        },
+        {
+            dt.date(2026, 11, 8): {
+                "user1": {"todaySteps": 14925, "dailyRank": 1}
+            }
+        },
+        {"user1": {"weeklyAverage": 9469.0, "weeklyRank": 10}},
+        {
+            "user1": {
+                "longest5kStreak": 3,
+                "longest5kStreakRank": 1,
+                "longest5kStreakStart": dt.date(2026, 11, 3),
+                "longest5kStreakEnd": dt.date(2026, 11, 5),
+                "current5kStreak": 2,
+                "current5kStreakStart": dt.date(2026, 11, 7),
+                "current5kStreakEnd": dt.date(2026, 11, 8),
+            }
+        },
+    )
     build_user_data.write_user_json_files(
-        build_user_data.UserDataInputs(
-            {"user1": "token1", "user2": "token2"},
-            {
-                "user1": {
-                    "11/08": 14925,
-                    "11/07": 12897,
-                    "11/06": 15683,
-                    "11/05": 13358,
-                    "11/04": 12773,
-                    "11/03": 12330,
-                    "10/29": 11649,
-                }
-            },
-            {
-                dt.date(2026, 11, 8): {
-                    "user1": {"todaySteps": 14925, "dailyRank": 1}
-                }
-            },
-            {"user1": {"weeklyAverage": 9469.0, "weeklyRank": 10}},
-            {
-                "user1": {
-                    "longest5kStreak": 3,
-                    "longest5kStreakRank": 1,
-                    "longest5kStreakStart": dt.date(2026, 11, 3),
-                    "longest5kStreakEnd": dt.date(2026, 11, 5),
-                    "current5kStreak": 2,
-                    "current5kStreakStart": dt.date(2026, 11, 7),
-                    "current5kStreakEnd": dt.date(2026, 11, 8),
-                }
-            },
-        ),
+        user_data_inputs,
         "2026-11-08T23:05:02",
         dt.date(2026, 11, 8),
     )
