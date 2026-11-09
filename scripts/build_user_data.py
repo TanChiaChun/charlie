@@ -311,6 +311,10 @@ def write_user_json_files(
     output_dir.mkdir(parents=True, exist_ok=True)
 
     for username, public_id in inputs.user_public_ids.items():
+        daily_stats = inputs.daily_stats[last_fetch_date].get(username, {})
+        weekly_stats = inputs.weekly_stats.get(username, {})
+        streaks_5k_stats = inputs.streaks_5k_stats.get(username, {})
+
         user_data = {
             "username": username,
             "lastFetch": last_fetch,
@@ -318,54 +322,36 @@ def write_user_json_files(
                 inputs.daily_steps_by_user.get(username, {}), last_fetch_date
             ),
             "stats": {
-                "dailyRank": inputs.daily_stats[last_fetch_date]
-                .get(username, {})
-                .get("dailyRank"),
-                "weeklyAverage": inputs.weekly_stats.get(username, {}).get(
-                    "weeklyAverage", 0
+                "dailyRank": daily_stats.get("dailyRank"),
+                "weeklyAverage": weekly_stats.get("weeklyAverage", 0),
+                "weeklyRank": weekly_stats.get("weeklyRank"),
+                "longest5kStreak": streaks_5k_stats.get("longest5kStreak", 0),
+                "longest5kStreakRank": streaks_5k_stats.get(
+                    "longest5kStreakRank"
                 ),
-                "weeklyRank": inputs.weekly_stats.get(username, {}).get(
-                    "weeklyRank"
-                ),
-                "longest5kStreak": inputs.streaks_5k_stats.get(
-                    username, {}
-                ).get("longest5kStreak", 0),
-                "longest5kStreakRank": inputs.streaks_5k_stats.get(
-                    username, {}
-                ).get("longest5kStreakRank"),
                 "longest5kStreakStart": format_date(
                     cast(
                         dt.date | None,
-                        inputs.streaks_5k_stats.get(username, {}).get(
-                            "longest5kStreakStart"
-                        ),
+                        streaks_5k_stats.get("longest5kStreakStart"),
                     )
                 ),
                 "longest5kStreakEnd": format_date(
                     cast(
                         dt.date | None,
-                        inputs.streaks_5k_stats.get(username, {}).get(
-                            "longest5kStreakEnd"
-                        ),
+                        streaks_5k_stats.get("longest5kStreakEnd"),
                     )
                 ),
-                "current5kStreak": inputs.streaks_5k_stats.get(
-                    username, {}
-                ).get("current5kStreak", 0),
+                "current5kStreak": streaks_5k_stats.get("current5kStreak", 0),
                 "current5kStreakStart": format_date(
                     cast(
                         dt.date | None,
-                        inputs.streaks_5k_stats.get(username, {}).get(
-                            "current5kStreakStart"
-                        ),
+                        streaks_5k_stats.get("current5kStreakStart"),
                     )
                 ),
                 "current5kStreakEnd": format_date(
                     cast(
                         dt.date | None,
-                        inputs.streaks_5k_stats.get(username, {}).get(
-                            "current5kStreakEnd"
-                        ),
+                        streaks_5k_stats.get("current5kStreakEnd"),
                     )
                 ),
             },
