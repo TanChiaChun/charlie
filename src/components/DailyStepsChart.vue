@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { VisAxis, VisGroupedBar, VisXYContainer } from '@unovis/vue'
+import { useMediaQuery } from '@vueuse/core'
 import { computed } from 'vue'
 
 import type { ChartConfig } from '@/components/ui/chart'
@@ -18,6 +19,7 @@ interface Data {
 
 const props = defineProps<{ data: Data[] }>()
 
+const isMobile = useMediaQuery('(max-width: 639px)')
 const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000
 const chartConfig = {
   steps: {
@@ -44,7 +46,7 @@ const tickFormat = (d: number): number => new Date(d).getDate()
       />
 
       <VisAxis type="x" :tick-format :tick-values :grid-line="false" />
-      <VisAxis type="y" />
+      <VisAxis v-if="!isMobile" type="y" />
 
       <ChartTooltip />
       <ChartCrosshair

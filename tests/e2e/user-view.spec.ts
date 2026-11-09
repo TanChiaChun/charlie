@@ -58,6 +58,14 @@ test('displays user view after data loads', async ({ page }) => {
   ).toBeVisible()
   await expect(page.getByText('2', { exact: true })).toBeVisible()
   await expect(page.getByText('12 Oct - 29 Oct')).toBeVisible()
+
+  const yAxis = page.locator('css=g[axis-type="y"]')
+  const viewportWidth = page.viewportSize()?.width ?? 0
+  if (viewportWidth < 640) {
+    await expect(yAxis).toHaveCount(0)
+  } else {
+    await expect(yAxis).toBeVisible()
+  }
 })
 
 test('displays error when URL changes to invalid user', async ({ page }) => {
