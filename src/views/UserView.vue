@@ -17,6 +17,8 @@ interface UserData {
     dailyRank: number | null
     weeklyAverage: number
     weeklyRank: number | null
+    monthlyAverage: number
+    monthlyRank: number | null
     longest5kStreak: number
     longest5kStreakRank: number | null
     longest5kStreakStart: string | null
@@ -71,6 +73,22 @@ const weekRange = computed(() => {
   start.setDate(start.getDate() - (day === 0 ? 6 : day - 1))
 
   return `${formatDate(start)} - ${formatDate(end)}`
+})
+const monthlyAverage = computed(() =>
+  Math.floor(userData.value?.stats.monthlyAverage ?? 0),
+)
+const monthRange = computed(() => {
+  const novStart = new Date(2026, 10, 1)
+  if (!lastFetch.value || lastFetch.value < novStart) {
+    return ''
+  }
+
+  const novEnd =
+    lastFetch.value < new Date(2026, 10, 30)
+      ? lastFetch.value
+      : new Date(2026, 10, 30)
+
+  return `${formatDate(novStart)} - ${formatDate(novEnd)}`
 })
 const longest5kStreakRange = computed(() => {
   const { longest5kStreakStart, longest5kStreakEnd } =
@@ -146,7 +164,7 @@ watch(
       :last-updated="lastFetch ?? undefined"
     />
 
-    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+    <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
       <StatsCard
         title="Today"
         :value="todaySteps"
@@ -159,6 +177,13 @@ watch(
         unit="steps/day"
         :rank="userData.stats.weeklyRank"
         :subtitle="weekRange"
+      />
+      <StatsCard
+        title="November"
+        :value="monthlyAverage"
+        unit="steps/day"
+        :rank="userData.stats.monthlyRank"
+        :subtitle="monthRange"
       />
     </div>
 

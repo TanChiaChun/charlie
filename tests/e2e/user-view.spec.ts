@@ -8,6 +8,8 @@ const userData = {
     dailyRank: 2,
     weeklyAverage: 10997.0,
     weeklyRank: 11,
+    monthlyAverage: 13668.0,
+    monthlyRank: 15,
     longest5kStreak: 18,
     longest5kStreakRank: 3,
     longest5kStreakStart: '2026-10-12',
@@ -40,6 +42,7 @@ test('displays user view after data loads', async ({ page }) => {
 
   await expect(page.getByRole('heading', { name: 'Today' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'This Week' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'November' })).toBeVisible()
   await expect(
     page.getByRole('heading', { name: 'Current 5K Streak' }),
   ).toBeVisible()
