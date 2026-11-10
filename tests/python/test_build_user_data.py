@@ -284,8 +284,21 @@ def test_write_leaderboard_json_file(
             "user6": {"weeklyRank": 7, "weeklyAverage": 15436.0},
         },
     }
+    streaks_5k_stats: dict[str, dict[str, int | dt.date | None]] = {
+        "User1": {"longest5kStreak": 17, "longest5kStreakRank": 9},
+        "User2": {"longest5kStreak": 23, "longest5kStreakRank": 5},
+        "User3": {"longest5kStreak": 29, "longest5kStreakRank": 1},
+        "User4": {"longest5kStreak": 22, "longest5kStreakRank": 6},
+        "User5": {"longest5kStreak": 20, "longest5kStreakRank": 7},
+        "User6": {"longest5kStreak": 29, "longest5kStreakRank": 1},
+        "User7": {"longest5kStreak": 24, "longest5kStreakRank": 4},
+        "User8": {"longest5kStreak": 18, "longest5kStreakRank": 8},
+        "User9": {"longest5kStreak": 17, "longest5kStreakRank": 9},
+        "User10": {"longest5kStreak": 29, "longest5kStreakRank": 1},
+        "User11": {"longest5kStreak": 17, "longest5kStreakRank": 9},
+    }
     build_user_data.write_leaderboard_json_file(
-        daily_stats, weekly_stats, "2026-11-06T07:05:02"
+        daily_stats, weekly_stats, streaks_5k_stats, "2026-11-06T07:05:02"
     )
 
     result = json.loads((tmp_path / "leaderboard.json").read_text())
@@ -322,6 +335,21 @@ def test_write_leaderboard_json_file(
         {"rank": 8, "averageSteps": 13468.0, "username": "user9"},
         {"rank": 9, "averageSteps": 13432.0, "username": "user6"},
         {"rank": 10, "averageSteps": 13276.0, "username": "user3"},
+    ]
+
+    assert len(result["streaks5k"]) == 11
+    assert result["streaks5k"] == [
+        {"rank": 1, "days": 29, "username": "User10"},
+        {"rank": 1, "days": 29, "username": "User3"},
+        {"rank": 1, "days": 29, "username": "User6"},
+        {"rank": 4, "days": 24, "username": "User7"},
+        {"rank": 5, "days": 23, "username": "User2"},
+        {"rank": 6, "days": 22, "username": "User4"},
+        {"rank": 7, "days": 20, "username": "User5"},
+        {"rank": 8, "days": 18, "username": "User8"},
+        {"rank": 9, "days": 17, "username": "User1"},
+        {"rank": 9, "days": 17, "username": "User11"},
+        {"rank": 9, "days": 17, "username": "User9"},
     ]
 
 

@@ -282,6 +282,7 @@ def rank_users(user_scores: Mapping[str, int | float]) -> dict[str, int]:
 def write_leaderboard_json_file(
     daily_stats: dict[dt.date, dict[str, dict[str, int | None]]],
     weekly_stats: dict[dt.date, dict[str, dict[str, int | float | None]]],
+    streaks_5k_stats: dict[str, dict[str, int | dt.date | None]],
     last_fetch: str,
 ) -> None:
     """Write leaderboard data to a JSON file."""
@@ -291,7 +292,7 @@ def write_leaderboard_json_file(
             (
                 (user, stats)
                 for user, stats in user_stats.items()
-                if stats["dailyRank"] is not None
+                if stats["dailyRank"] is not None and stats["dailyRank"] <= 10
             ),
             key=lambda x: (x[1]["dailyRank"], x[0].casefold()),
         )
@@ -301,7 +302,7 @@ def write_leaderboard_json_file(
                 "steps": stats["todaySteps"],
                 "username": user,
             }
-            for user, stats in sorted_user_stats[:10]
+            for user, stats in sorted_user_stats
         ]
 
     weekly_leaderboard = {}
@@ -310,7 +311,7 @@ def write_leaderboard_json_file(
             (
                 (user, stats)
                 for user, stats in week_stats.items()
-                if stats["weeklyRank"] is not None
+                if stats["weeklyRank"] is not None and stats["weeklyRank"] <= 10
             ),
             key=lambda x: (x[1]["weeklyRank"], x[0].casefold()),
         )
@@ -320,13 +321,32 @@ def write_leaderboard_json_file(
                 "averageSteps": stats["weeklyAverage"],
                 "username": user,
             }
-            for user, stats in sorted_week_stats[:10]
+            for user, stats in sorted_week_stats
         ]
+
+    sorted_streaks_5k_stats = sorted(
+        (
+            (user, stats)
+            for user, stats in streaks_5k_stats.items()
+            if isinstance(stats["longest5kStreakRank"], int)
+            and stats["longest5kStreakRank"] <= 10
+        ),
+        key=lambda x: (x[1]["longest5kStreakRank"], x[0].casefold()),
+    )
+    streaks_5k_leaderboard = [
+        {
+            "rank": stats["longest5kStreakRank"],
+            "days": stats["longest5kStreak"],
+            "username": user,
+        }
+        for user, stats in sorted_streaks_5k_stats
+    ]
 
     leaderboard_data = {
         "lastFetch": last_fetch,
         "daily": daily_leaderboard,
         "weekly": weekly_leaderboard,
+        "streaks5k": streaks_5k_leaderboard,
     }
 
     PUBLIC_DIR.mkdir(exist_ok=True)
@@ -429,7 +449,9 @@ def main() -> None:
         last_fetch,
         last_fetch_date,
     )
-    write_leaderboard_json_file(daily_stats, weekly_stats, last_fetch)
+    write_leaderboard_json_file(
+        daily_stats, weekly_stats, streaks_5k_stats, last_fetch
+    )
 
 
 if __name__ == "__main__":

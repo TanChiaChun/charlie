@@ -3,9 +3,9 @@ import { computed } from 'vue'
 
 import type { LeaderboardRecord } from '@/types/leaderboard'
 
-const props = defineProps<{ record: LeaderboardRecord; maxSteps: number }>()
+const props = defineProps<{ record: LeaderboardRecord; maxValue: number }>()
 
-const progress = computed(() => (props.record.steps / props.maxSteps) * 100)
+const progress = computed(() => (props.record.value / props.maxValue) * 100)
 </script>
 
 <template>
@@ -19,7 +19,7 @@ const progress = computed(() => (props.record.steps / props.maxSteps) * 100)
       <div class="flex items-center justify-between gap-3">
         <span class="font-medium sm:text-lg">{{ record.username }}</span>
         <span class="text-muted-foreground tabular-nums">{{
-          record.steps.toLocaleString()
+          record.value.toLocaleString()
         }}</span>
       </div>
 
