@@ -21,6 +21,7 @@ test('displays the latest available daily leaderboard', async ({ page }) => {
     weekly: {
       '2026-10-12': [{ rank: 1, averageSteps: 15756.3, username: 'User1' }],
     },
+    monthly: [{ rank: 1, averageSteps: 19266.8, username: 'NovUser' }],
     streaks5k: [{ rank: 1, days: 29, username: 'User2' }],
   }
   await page.route('**/leaderboard.json', async (route) => {
@@ -69,6 +70,7 @@ test('switches between daily and weekly leaderboards', async ({ page }) => {
         { rank: 2, averageSteps: 15759.0, username: 'User3' },
       ],
     },
+    monthly: [{ rank: 1, averageSteps: 19266.8, username: 'NovUser' }],
     streaks5k: [{ rank: 1, days: 29, username: 'User2' }],
   }
   await page.route('**/leaderboard.json', (route) =>
@@ -97,6 +99,36 @@ test('switches between daily and weekly leaderboards', async ({ page }) => {
   await expect(firstRecord).toContainText('User1')
 })
 
+test('displays the November leaderboard', async ({ page }) => {
+  const leaderboardData = {
+    lastFetch: '2026-11-10T02:05:02',
+    daily: { '2026-11-10': [{ rank: 1, steps: 2883, username: 'User1' }] },
+    weekly: {
+      '2026-10-12': [{ rank: 1, averageSteps: 15756.3, username: 'User1' }],
+    },
+    monthly: [
+      { rank: 1, averageSteps: 19266.8, username: 'NovUser' },
+      { rank: 2, averageSteps: 16451.5, username: 'User2' },
+    ],
+    streaks5k: [{ rank: 1, days: 29, username: 'User2' }],
+  }
+  await page.route('**/leaderboard.json', (route) =>
+    route.fulfill({ json: leaderboardData }),
+  )
+  await page.goto('/#/leaderboard')
+
+  await page.getByRole('tab', { name: 'November' }).click()
+  await expect(page.getByRole('heading', { name: 'November' })).toBeVisible()
+  await expect(page.getByText('1 Nov - 10 Nov')).toBeVisible()
+
+  const records = page.getByTestId('leaderboard').locator(':scope > div')
+  await expect(records).toHaveCount(2)
+
+  const firstRecord = records.first()
+  await expect(firstRecord).toContainText('NovUser')
+  await expect(firstRecord).toContainText('19,266')
+})
+
 test('displays the 5K streak leaderboard', async ({ page }) => {
   const leaderboardData = {
     lastFetch: '2026-11-10T15:05:02',
@@ -104,6 +136,7 @@ test('displays the 5K streak leaderboard', async ({ page }) => {
     weekly: {
       '2026-10-12': [{ rank: 1, averageSteps: 15756.3, username: 'User1' }],
     },
+    monthly: [{ rank: 1, averageSteps: 19266.8, username: 'NovUser' }],
     streaks5k: [
       { rank: 1, days: 29, username: '5kUser' },
       { rank: 1, days: 29, username: 'User6' },
