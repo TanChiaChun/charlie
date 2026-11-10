@@ -382,6 +382,9 @@ def test_write_user_json_files(
             "user1": {"weeklyAverage": 9469.0, "weeklyRank": 10}
         },
     }
+    monthly_stats: dict[str, dict[str, int | float | None]] = {
+        "user1": {"monthlyAverage": 13085.2, "monthlyRank": 1},
+    }
     streaks_5k_stats: dict[str, dict[str, int | dt.date | None]] = {
         "user1": {
             "longest5kStreak": 3,
@@ -398,6 +401,7 @@ def test_write_user_json_files(
         daily_steps_by_user,
         daily_stats,
         weekly_stats,
+        monthly_stats,
         streaks_5k_stats,
     )
     build_user_data.write_user_json_files(
@@ -422,6 +426,8 @@ def test_write_user_json_files(
             "dailyRank": 1,
             "weeklyAverage": 9469.0,
             "weeklyRank": 10,
+            "monthlyAverage": 13085.2,
+            "monthlyRank": 1,
             "longest5kStreak": 3,
             "longest5kStreakRank": 1,
             "longest5kStreakStart": "2026-11-03",
@@ -439,6 +445,8 @@ def test_write_user_json_files(
             "dailyRank": None,
             "weeklyAverage": 0.0,
             "weeklyRank": None,
+            "monthlyAverage": 0.0,
+            "monthlyRank": None,
             "longest5kStreak": 0,
             "longest5kStreakRank": None,
             "longest5kStreakStart": None,

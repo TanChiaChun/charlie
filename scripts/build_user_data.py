@@ -17,6 +17,7 @@ class UserDataInputs:
     daily_steps_by_user: dict[str, dict[str, int]]
     daily_stats: dict[dt.date, dict[str, dict[str, int | None]]]
     weekly_stats: dict[dt.date, dict[str, dict[str, int | float | None]]]
+    monthly_stats: dict[str, dict[str, int | float | None]]
     streaks_5k_stats: dict[str, dict[str, int | dt.date | None]]
 
 
@@ -398,6 +399,7 @@ def write_user_json_files(
     for username, public_id in inputs.user_public_ids.items():
         daily_stats = inputs.daily_stats[last_fetch_date].get(username, {})
         weekly_stats = inputs.weekly_stats[current_week_start].get(username, {})
+        monthly_stats = inputs.monthly_stats.get(username, {})
         streaks_5k_stats = inputs.streaks_5k_stats.get(username, {})
 
         user_data = {
@@ -410,6 +412,8 @@ def write_user_json_files(
                 "dailyRank": daily_stats.get("dailyRank"),
                 "weeklyAverage": weekly_stats.get("weeklyAverage", 0),
                 "weeklyRank": weekly_stats.get("weeklyRank"),
+                "monthlyAverage": monthly_stats.get("monthlyAverage", 0),
+                "monthlyRank": monthly_stats.get("monthlyRank"),
                 "longest5kStreak": streaks_5k_stats.get("longest5kStreak", 0),
                 "longest5kStreakRank": streaks_5k_stats.get(
                     "longest5kStreakRank"
@@ -464,6 +468,11 @@ def main() -> None:
         last_fetch_date,
         registered_users,
     )
+    monthly_stats = calculate_monthly_stats(
+        daily_steps_by_user,
+        min(last_fetch_date, dt.date(2026, 11, 30)),
+        registered_users,
+    )
     streaks_5k_stats = calculate_5k_streaks_stats(
         daily_steps_by_user, last_fetch_date, registered_users
     )
@@ -474,6 +483,7 @@ def main() -> None:
             daily_steps_by_user,
             daily_stats,
             weekly_stats,
+            monthly_stats,
             streaks_5k_stats,
         ),
         last_fetch,
