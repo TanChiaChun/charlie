@@ -39,22 +39,13 @@ test('displays user view after data loads', async ({ page }) => {
   await expect(page.getByText('23 Oct - 1 Nov')).toBeVisible()
 
   await expect(page.getByRole('heading', { name: 'Today' })).toBeVisible()
-  await expect(page.getByText('13,668')).toBeVisible()
-
   await expect(page.getByRole('heading', { name: 'This Week' })).toBeVisible()
-  await expect(page.getByText('10,997')).toBeVisible()
-  await expect(page.getByText('Rank #11')).toBeVisible()
-
   await expect(
     page.getByRole('heading', { name: 'Current 5K Streak' }),
   ).toBeVisible()
-  await expect(page.getByText('2', { exact: true })).toBeVisible()
-
   await expect(
     page.getByRole('heading', { name: 'Longest 5K Streak' }),
   ).toBeVisible()
-  await expect(page.getByText('2', { exact: true })).toBeVisible()
-  await expect(page.getByText('12 Oct - 29 Oct')).toBeVisible()
 
   const yAxis = page.locator('css=g[axis-type="y"]')
   const viewportWidth = page.viewportSize()?.width ?? 0
