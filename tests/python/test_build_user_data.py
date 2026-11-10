@@ -56,6 +56,19 @@ def test_calculate_daily_stats() -> None:
     }
 
 
+def test_calculate_monthly_stats() -> None:
+    daily_steps_by_user = {
+        "user1": {"11/01": 13327, "10/31": 14668},
+        "user2": {"11/02": 15033, "11/01": 11276, "10/31": 16056},
+    }
+    assert build_user_data.calculate_monthly_stats(
+        daily_steps_by_user, dt.date(2026, 11, 2), {"user1", "user2"}
+    ) == {
+        "user1": {"monthlyAverage": 6663.5, "monthlyRank": 2},
+        "user2": {"monthlyAverage": 13154.5, "monthlyRank": 1},
+    }
+
+
 def test_calculate_user_5k_streaks() -> None:
     start_date = build_user_data.MIN_DATE
     today = start_date + dt.timedelta(days=5)

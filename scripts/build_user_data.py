@@ -84,6 +84,36 @@ def calculate_daily_stats(
     return daily_stats
 
 
+def calculate_monthly_stats(
+    daily_steps_by_user: dict[str, dict[str, int]],
+    end_date: dt.date,
+    registered_users: set[str],
+) -> dict[str, dict[str, int | float | None]]:
+    """Calculate monthly average steps and ranks for registered users."""
+    month_start = end_date.replace(day=1)
+    num_days = (end_date - month_start).days + 1
+    dates = [
+        (month_start + dt.timedelta(days=offset)).strftime("%m/%d")
+        for offset in range(num_days)
+    ]
+
+    monthly_averages = {}
+    for user in registered_users:
+        total_steps = sum(
+            daily_steps_by_user.get(user, {}).get(date, 0) for date in dates
+        )
+        monthly_averages[user] = total_steps / num_days
+    monthly_ranks = rank_users(monthly_averages)
+
+    return {
+        user: {
+            "monthlyAverage": monthly_averages[user],
+            "monthlyRank": monthly_ranks.get(user),
+        }
+        for user in registered_users
+    }
+
+
 def calculate_user_5k_streaks(
     daily_steps: dict[dt.date, int], today: dt.date
 ) -> dict[str, int | dt.date | None]:
