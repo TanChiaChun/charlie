@@ -291,7 +291,7 @@ def write_leaderboard_json_file(
             (
                 (user, stats)
                 for user, stats in user_stats.items()
-                if stats["dailyRank"] is not None
+                if stats["dailyRank"] is not None and stats["dailyRank"] <= 10
             ),
             key=lambda x: (x[1]["dailyRank"], x[0].casefold()),
         )
@@ -301,7 +301,7 @@ def write_leaderboard_json_file(
                 "steps": stats["todaySteps"],
                 "username": user,
             }
-            for user, stats in sorted_user_stats[:10]
+            for user, stats in sorted_user_stats
         ]
 
     weekly_leaderboard = {}
@@ -310,7 +310,7 @@ def write_leaderboard_json_file(
             (
                 (user, stats)
                 for user, stats in week_stats.items()
-                if stats["weeklyRank"] is not None
+                if stats["weeklyRank"] is not None and stats["weeklyRank"] <= 10
             ),
             key=lambda x: (x[1]["weeklyRank"], x[0].casefold()),
         )
@@ -320,7 +320,7 @@ def write_leaderboard_json_file(
                 "averageSteps": stats["weeklyAverage"],
                 "username": user,
             }
-            for user, stats in sorted_week_stats[:10]
+            for user, stats in sorted_week_stats
         ]
 
     leaderboard_data = {
