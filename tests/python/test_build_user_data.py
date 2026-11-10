@@ -9,9 +9,9 @@ import build_user_data
 
 def test_calculate_5k_streaks_stats() -> None:
     daily_steps_by_user = {
-        "user1": {"10/12": 5000, "10/13": 6000},
-        "user2": {"10/12": 7000, "10/13": 8000},
-        "user3": {"10/12": 3000, "10/13": 3500},
+        "user1": {"10/13": 6000, "10/12": 5000},
+        "user2": {"10/13": 8000, "10/12": 7000},
+        "user3": {"10/13": 3500, "10/12": 3000},
     }
 
     stats = build_user_data.calculate_5k_streaks_stats(
@@ -60,12 +60,12 @@ def test_calculate_user_5k_streaks() -> None:
     start_date = build_user_data.MIN_DATE
     today = start_date + dt.timedelta(days=5)
     daily_steps = {
-        start_date: 5000,
-        start_date + dt.timedelta(days=1): 6000,
-        start_date + dt.timedelta(days=2): 7000,
-        start_date + dt.timedelta(days=3): 3000,
-        start_date + dt.timedelta(days=4): 8000,
         today: 9000,
+        start_date + dt.timedelta(days=4): 8000,
+        start_date + dt.timedelta(days=3): 3000,
+        start_date + dt.timedelta(days=2): 7000,
+        start_date + dt.timedelta(days=1): 6000,
+        start_date: 5000,
     }
 
     assert build_user_data.calculate_user_5k_streaks(daily_steps, today) == {
@@ -81,14 +81,14 @@ def test_calculate_user_5k_streaks() -> None:
 def test_calculate_weekly_stats() -> None:
     daily_steps_by_user = {
         "user1": {
-            "10/25": 3500,
-            "10/26": 10190,
             "10/27": 9680,
+            "10/26": 10190,
+            "10/25": 3500,
         },
         "user2": {
-            "10/25": 2100,
-            "10/26": 5316,
             "10/27": 14964,
+            "10/26": 5316,
+            "10/25": 2100,
         },
         "user3": {
             "10/25": 5600,
@@ -193,8 +193,8 @@ def test_load_daily_steps_by_user(
     )
 
     assert build_user_data.load_daily_steps_by_user({"user1", "user2"}) == {
-        "user1": {"10/12": 8500, "10/13": 9000},
-        "user2": {"10/12": 6300, "10/13": 13000},
+        "user1": {"10/13": 9000, "10/12": 8500},
+        "user2": {"10/13": 13000, "10/12": 6300},
     }
 
 
