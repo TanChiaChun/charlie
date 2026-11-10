@@ -34,7 +34,7 @@ describe('UserView', () => {
     const mockUserData = {
       username: 'User1',
       lastFetch: '2026-11-01T23:05:02',
-      dailySteps: { '10/31': 8326, '11/01': 13668 },
+      dailySteps: { '11/01': 13668, '10/31': 8326 },
       stats: {
         dailyRank: 2,
         weeklyAverage: 10997.0,
