@@ -179,22 +179,24 @@ onMounted(async () => {
       </TabsList>
     </Tabs>
 
-    <div class="flex items-center justify-between">
-      <h2 class="font-semibold sm:text-lg">
-        {{ periodTitles[selectedPeriod] }}
-      </h2>
-      <span class="text-muted-foreground text-sm">{{
-        formattedLatestDate
-      }}</span>
-    </div>
+    <div class="mx-auto max-w-xl space-y-5">
+      <div class="flex items-center justify-between">
+        <h2 class="font-semibold sm:text-lg">
+          {{ periodTitles[selectedPeriod] }}
+        </h2>
+        <span class="text-muted-foreground text-sm">{{
+          formattedLatestDate
+        }}</span>
+      </div>
 
-    <div class="flex flex-col gap-6 sm:gap-7" data-testid="leaderboard">
-      <LeaderboardItem
-        v-for="record in latestRecords"
-        :key="record.username"
-        :record="record"
-        :max-value="maxValue"
-      />
+      <div class="flex flex-col gap-6 sm:gap-7" data-testid="leaderboard">
+        <LeaderboardItem
+          v-for="record in latestRecords"
+          :key="record.username"
+          :record="record"
+          :max-value="maxValue"
+        />
+      </div>
     </div>
   </div>
 </template>
