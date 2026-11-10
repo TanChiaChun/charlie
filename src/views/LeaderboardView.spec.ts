@@ -30,6 +30,10 @@ describe('LeaderboardView', () => {
           { rank: 10, steps: 15000, username: 'User1' },
         ],
       },
+      weekly: {
+        '2026-10-12': [{ rank: 1, averageSteps: 15756.3, username: 'User1' }],
+      },
+      streaks5k: [{ rank: 1, days: 29, username: 'User2' }],
     }
     const fetchMock = vi
       .fn()
