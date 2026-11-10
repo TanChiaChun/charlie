@@ -42,7 +42,7 @@ describe('LeaderboardView', () => {
     const text = wrapper.text()
     expect(text).toContain('Leaderboard')
     expect(text).toContain('Last updated: 6 Nov, 8:05 pm')
-    expect(wrapper.get('h2').text()).toBe('daily')
+    expect(wrapper.get('h2').text()).toBe('Daily')
     expect(text).toContain('5 Nov')
 
     const leaderboardItems = wrapper.findAllComponents(LeaderboardItem)
@@ -124,7 +124,7 @@ describe('LeaderboardView', () => {
     const text = wrapper.text()
     expect(text).toContain('Leaderboard')
     expect(text).toContain('Last updated: 10 Nov, 2:05 am')
-    expect(wrapper.get('h2').text()).toBe('weekly')
+    expect(wrapper.get('h2').text()).toBe('Weekly')
     expect(text).toContain('19 Oct - 25 Oct')
 
     const leaderboardItems = wrapper.findAllComponents(LeaderboardItem)

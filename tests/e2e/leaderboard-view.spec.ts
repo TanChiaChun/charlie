@@ -31,7 +31,7 @@ test('displays the latest available daily leaderboard', async ({ page }) => {
 
   await expect(page.getByRole('heading', { name: 'Leaderboard' })).toBeVisible()
   await expect(page.getByText('Last updated: 6 Nov')).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'daily' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Daily' })).toBeVisible()
   await expect(page.getByText('5 Nov')).toBeVisible()
 
   const leaderboard = page.getByTestId('leaderboard')
@@ -74,20 +74,20 @@ test('switches between daily and weekly leaderboards', async ({ page }) => {
   const records = page.getByTestId('leaderboard').locator(':scope > div')
   const firstRecord = records.first()
 
-  await expect(page.getByRole('heading', { name: 'daily' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Daily' })).toBeVisible()
   await expect(records).toHaveCount(1)
   await expect(firstRecord).toContainText('User1')
   await expect(firstRecord).toContainText('2,883')
 
   await page.getByRole('tab', { name: 'Weekly' }).click()
-  await expect(page.getByRole('heading', { name: 'weekly' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Weekly' })).toBeVisible()
   await expect(page.getByText('19 Oct - 25 Oct')).toBeVisible()
   await expect(records).toHaveCount(2)
   await expect(firstRecord).toContainText('WeekUser')
   await expect(firstRecord).toContainText('17,026')
 
   await page.getByRole('tab', { name: 'Daily' }).click()
-  await expect(page.getByRole('heading', { name: 'daily' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Daily' })).toBeVisible()
   await expect(records).toHaveCount(1)
   await expect(firstRecord).toContainText('User1')
 })

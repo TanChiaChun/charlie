@@ -15,6 +15,11 @@ interface LeaderboardData {
   weekly: Record<string, PeriodLeaderboardRecord[]>
 }
 
+const periodTitles = {
+  daily: 'Daily',
+  weekly: 'Weekly',
+}
+
 const status = ref<'pending' | 'success' | 'error'>('pending')
 const leaderboardData = ref<LeaderboardData | null>(null)
 const selectedPeriod = ref<'daily' | 'weekly'>('daily')
@@ -113,7 +118,9 @@ onMounted(async () => {
     </Tabs>
 
     <div class="flex items-center justify-between">
-      <h2 class="font-semibold capitalize sm:text-lg">{{ selectedPeriod }}</h2>
+      <h2 class="font-semibold sm:text-lg">
+        {{ periodTitles[selectedPeriod] }}
+      </h2>
       <span class="text-muted-foreground text-sm">{{
         formattedLatestDate
       }}</span>
