@@ -285,6 +285,28 @@ def test_write_leaderboard_json_file(
             "user6": {"weeklyRank": 7, "weeklyAverage": 15436.0},
         },
     }
+    monthly_stats: dict[str, dict[str, int | float | None]] = {
+        "User1": {"monthlyAverage": 19266.8, "monthlyRank": 1},
+        "User2": {"monthlyAverage": 16451.5, "monthlyRank": 2},
+        "User3": {"monthlyAverage": 15750.2, "monthlyRank": 3},
+        "User4": {"monthlyAverage": 14156.7, "monthlyRank": 4},
+        "User5": {"monthlyAverage": 13564.8, "monthlyRank": 5},
+        "User6": {"monthlyAverage": 13433.7, "monthlyRank": 6},
+        "User7": {"monthlyAverage": 13388.6, "monthlyRank": 7},
+        "User8": {"monthlyAverage": 13343.6, "monthlyRank": 8},
+        "User9": {"monthlyAverage": 13266.0, "monthlyRank": 9},
+        "User10": {"monthlyAverage": 13060.4, "monthlyRank": 10},
+        "User11": {"monthlyAverage": 12865.4, "monthlyRank": 11},
+        "User12": {"monthlyAverage": 11979.9, "monthlyRank": 12},
+        "User13": {"monthlyAverage": 11744.8, "monthlyRank": 13},
+        "User14": {"monthlyAverage": 11732.7, "monthlyRank": 14},
+        "User15": {"monthlyAverage": 11627.8, "monthlyRank": 15},
+        "User16": {"monthlyAverage": 11259.7, "monthlyRank": 16},
+        "User17": {"monthlyAverage": 10943.2, "monthlyRank": 17},
+        "User18": {"monthlyAverage": 10572.9, "monthlyRank": 18},
+        "User19": {"monthlyAverage": 10143.2, "monthlyRank": 19},
+        "User20": {"monthlyAverage": 10113.5, "monthlyRank": 20},
+    }
     streaks_5k_stats: dict[str, dict[str, int | dt.date | None]] = {
         "User1": {"longest5kStreak": 17, "longest5kStreakRank": 9},
         "User2": {"longest5kStreak": 23, "longest5kStreakRank": 5},
@@ -299,7 +321,11 @@ def test_write_leaderboard_json_file(
         "User11": {"longest5kStreak": 17, "longest5kStreakRank": 9},
     }
     build_user_data.write_leaderboard_json_file(
-        daily_stats, weekly_stats, streaks_5k_stats, "2026-11-06T07:05:02"
+        daily_stats,
+        weekly_stats,
+        monthly_stats,
+        streaks_5k_stats,
+        "2026-11-06T07:05:02",
     )
 
     result = json.loads((tmp_path / "leaderboard.json").read_text())
@@ -336,6 +362,30 @@ def test_write_leaderboard_json_file(
         {"rank": 8, "averageSteps": 13468.0, "username": "user9"},
         {"rank": 9, "averageSteps": 13432.0, "username": "user6"},
         {"rank": 10, "averageSteps": 13276.0, "username": "user3"},
+    ]
+
+    assert len(result["monthly"]) == 20
+    assert result["monthly"] == [
+        {"rank": 1, "averageSteps": 19266.8, "username": "User1"},
+        {"rank": 2, "averageSteps": 16451.5, "username": "User2"},
+        {"rank": 3, "averageSteps": 15750.2, "username": "User3"},
+        {"rank": 4, "averageSteps": 14156.7, "username": "User4"},
+        {"rank": 5, "averageSteps": 13564.8, "username": "User5"},
+        {"rank": 6, "averageSteps": 13433.7, "username": "User6"},
+        {"rank": 7, "averageSteps": 13388.6, "username": "User7"},
+        {"rank": 8, "averageSteps": 13343.6, "username": "User8"},
+        {"rank": 9, "averageSteps": 13266.0, "username": "User9"},
+        {"rank": 10, "averageSteps": 13060.4, "username": "User10"},
+        {"rank": 11, "averageSteps": 12865.4, "username": "User11"},
+        {"rank": 12, "averageSteps": 11979.9, "username": "User12"},
+        {"rank": 13, "averageSteps": 11744.8, "username": "User13"},
+        {"rank": 14, "averageSteps": 11732.7, "username": "User14"},
+        {"rank": 15, "averageSteps": 11627.8, "username": "User15"},
+        {"rank": 16, "averageSteps": 11259.7, "username": "User16"},
+        {"rank": 17, "averageSteps": 10943.2, "username": "User17"},
+        {"rank": 18, "averageSteps": 10572.9, "username": "User18"},
+        {"rank": 19, "averageSteps": 10143.2, "username": "User19"},
+        {"rank": 20, "averageSteps": 10113.5, "username": "User20"},
     ]
 
     assert len(result["streaks5k"]) == 11

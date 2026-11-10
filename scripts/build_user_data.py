@@ -313,10 +313,12 @@ def rank_users(user_scores: Mapping[str, int | float]) -> dict[str, int]:
 def write_leaderboard_json_file(
     daily_stats: dict[dt.date, dict[str, dict[str, int | None]]],
     weekly_stats: dict[dt.date, dict[str, dict[str, int | float | None]]],
+    monthly_stats: dict[str, dict[str, int | float | None]],
     streaks_5k_stats: dict[str, dict[str, int | dt.date | None]],
     last_fetch: str,
 ) -> None:
     """Write leaderboard data to a JSON file."""
+    # pylint: disable=too-many-locals
     daily_leaderboard = {}
     for date, user_stats in daily_stats.items():
         sorted_user_stats = sorted(
@@ -355,6 +357,23 @@ def write_leaderboard_json_file(
             for user, stats in sorted_week_stats
         ]
 
+    sorted_monthly_stats = sorted(
+        (
+            (user, stats)
+            for user, stats in monthly_stats.items()
+            if stats["monthlyRank"] is not None and stats["monthlyRank"] <= 20
+        ),
+        key=lambda x: (x[1]["monthlyRank"], x[0].casefold()),
+    )
+    monthly_leaderboard = [
+        {
+            "rank": stats["monthlyRank"],
+            "averageSteps": stats["monthlyAverage"],
+            "username": user,
+        }
+        for user, stats in sorted_monthly_stats
+    ]
+
     sorted_streaks_5k_stats = sorted(
         (
             (user, stats)
@@ -377,6 +396,7 @@ def write_leaderboard_json_file(
         "lastFetch": last_fetch,
         "daily": daily_leaderboard,
         "weekly": weekly_leaderboard,
+        "monthly": monthly_leaderboard,
         "streaks5k": streaks_5k_leaderboard,
     }
 
@@ -490,7 +510,7 @@ def main() -> None:
         last_fetch_date,
     )
     write_leaderboard_json_file(
-        daily_stats, weekly_stats, streaks_5k_stats, last_fetch
+        daily_stats, weekly_stats, monthly_stats, streaks_5k_stats, last_fetch
     )
 
 
