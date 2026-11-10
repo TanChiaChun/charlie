@@ -5,13 +5,13 @@ import LeaderboardItem from '@/components/LeaderboardItem.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import type {
-  LeaderboardRecord,
+  DailyLeaderboardRecord,
   PeriodLeaderboardRecord,
 } from '@/types/leaderboard'
 
 interface LeaderboardData {
   lastFetch: string
-  daily: Record<string, LeaderboardRecord[]>
+  daily: Record<string, DailyLeaderboardRecord[]>
   weekly: Record<string, PeriodLeaderboardRecord[]>
 }
 
@@ -57,19 +57,27 @@ const latestRecords = computed(() => {
   }
 
   if (selectedPeriod.value === 'daily') {
-    return leaderboardData.value?.daily[latestDate.value] ?? []
+    return (
+      leaderboardData.value?.daily[latestDate.value]?.map(
+        ({ rank, steps, username }) => ({
+          rank,
+          value: steps,
+          username,
+        }),
+      ) ?? []
+    )
   }
   return (
     leaderboardData.value?.weekly[latestDate.value]?.map(
       ({ rank, averageSteps, username }) => ({
         rank,
-        steps: Math.floor(averageSteps),
+        value: Math.floor(averageSteps),
         username,
       }),
     ) ?? []
   )
 })
-const maxSteps = computed(() => latestRecords.value.at(0)?.steps ?? 1)
+const maxValue = computed(() => latestRecords.value.at(0)?.value ?? 1)
 
 onMounted(async () => {
   try {
@@ -116,7 +124,7 @@ onMounted(async () => {
         v-for="record in latestRecords"
         :key="record.username"
         :record="record"
-        :max-steps="maxSteps"
+        :max-value="maxValue"
       />
     </div>
   </div>

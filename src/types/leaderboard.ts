@@ -1,5 +1,11 @@
 export interface LeaderboardRecord {
   rank: number
+  value: number
+  username: string
+}
+
+export interface DailyLeaderboardRecord {
+  rank: number
   steps: number
   username: string
 }

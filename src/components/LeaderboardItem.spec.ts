@@ -7,8 +7,8 @@ describe('LeaderboardItem', () => {
   test('displays leaderboard record and progress', () => {
     const wrapper = mount(LeaderboardItem, {
       props: {
-        record: { rank: 1, steps: 8000, username: 'User1' },
-        maxSteps: 10000,
+        record: { rank: 1, value: 8000, username: 'User1' },
+        maxValue: 10000,
       },
     })
 
