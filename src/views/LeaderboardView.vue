@@ -14,18 +14,22 @@ interface LeaderboardData {
   lastFetch: string
   daily: Record<string, DailyLeaderboardRecord[]>
   weekly: Record<string, PeriodLeaderboardRecord[]>
+  monthly: PeriodLeaderboardRecord[]
   streaks5k: Streak5kLeaderboardRecord[]
 }
 
 const periodTitles = {
   daily: 'Daily',
   weekly: 'Weekly',
+  monthly: 'November',
   streaks5k: '5K Streak',
 }
 
 const status = ref<'pending' | 'success' | 'error'>('pending')
 const leaderboardData = ref<LeaderboardData | null>(null)
-const selectedPeriod = ref<'daily' | 'weekly' | 'streaks5k'>('daily')
+const selectedPeriod = ref<'daily' | 'weekly' | 'monthly' | 'streaks5k'>(
+  'daily',
+)
 
 const lastUpdated = computed(() =>
   leaderboardData.value?.lastFetch
@@ -33,7 +37,10 @@ const lastUpdated = computed(() =>
     : undefined,
 )
 const latestDateString = computed(() => {
-  if (selectedPeriod.value === 'streaks5k') {
+  if (
+    selectedPeriod.value === 'monthly' ||
+    selectedPeriod.value === 'streaks5k'
+  ) {
     return leaderboardData.value?.lastFetch.slice(0, 10)
   }
 
@@ -71,6 +78,17 @@ const formattedLatestDate = computed(() => {
           : lastUpdated.value
       return `${formatDate(latestDate.value)} - ${formatDate(weekEndDate)}`
 
+    case 'monthly':
+      if (!lastUpdated.value) {
+        return ''
+      }
+      const monthStartDate = new Date(2026, 10, 1)
+      const monthEndDate =
+        lastUpdated.value < new Date(2026, 10, 30)
+          ? lastUpdated.value
+          : new Date(2026, 10, 30)
+      return `${formatDate(monthStartDate)} - ${formatDate(monthEndDate)}`
+
     case 'streaks5k':
       const minDate = new Date(2026, 9, 12)
       return `${formatDate(minDate)} - ${formatDate(latestDate.value)}`
@@ -99,6 +117,14 @@ const latestRecords = computed(() => {
       const weeklyRecords =
         leaderboardData.value?.weekly[latestDateString.value]
       return weeklyRecords?.map(({ rank, averageSteps, username }) => ({
+        rank,
+        value: Math.floor(averageSteps),
+        username,
+      }))
+
+    case 'monthly':
+      const monthlyRecords = leaderboardData.value?.monthly
+      return monthlyRecords?.map(({ rank, averageSteps, username }) => ({
         rank,
         value: Math.floor(averageSteps),
         username,
@@ -148,6 +174,7 @@ onMounted(async () => {
       <TabsList class="w-full">
         <TabsTrigger value="daily">Daily</TabsTrigger>
         <TabsTrigger value="weekly">Weekly</TabsTrigger>
+        <TabsTrigger value="monthly">November</TabsTrigger>
         <TabsTrigger value="streaks5k">5K Streak</TabsTrigger>
       </TabsList>
     </Tabs>

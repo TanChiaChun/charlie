@@ -34,14 +34,13 @@ describe('UserView', () => {
     const mockUserData = {
       username: 'User1',
       lastFetch: '2026-11-01T23:05:02',
-      dailySteps: {
-        '10/31': 8326,
-        '11/01': 13668,
-      },
+      dailySteps: { '11/01': 13668, '10/31': 8326 },
       stats: {
         dailyRank: 2,
         weeklyAverage: 10997.0,
         weeklyRank: 11,
+        monthlyAverage: 13668.0,
+        monthlyRank: 5,
         longest5kStreak: 18,
         longest5kStreakRank: 3,
         longest5kStreakStart: '2026-10-12',
@@ -66,7 +65,7 @@ describe('UserView', () => {
     expect(text).toContain('23 Oct - 1 Nov')
 
     const statsCards = wrapper.findAllComponents(StatsCard)
-    expect(statsCards).toHaveLength(4)
+    expect(statsCards).toHaveLength(5)
 
     const todayCardText = statsCards[0]?.text()
     expect(todayCardText).toContain('Today')
@@ -79,12 +78,18 @@ describe('UserView', () => {
     expect(weekCardText).toContain('#11')
     expect(weekCardText).toContain('26 Oct - 1 Nov')
 
-    const current5kStreakCardText = statsCards[2]?.text()
+    const monthCardText = statsCards[2]?.text()
+    expect(monthCardText).toContain('November')
+    expect(monthCardText).toContain('13,668')
+    expect(monthCardText).toContain('#5')
+    expect(monthCardText).toContain('1 Nov - 1 Nov')
+
+    const current5kStreakCardText = statsCards[3]?.text()
     expect(current5kStreakCardText).toContain('Current 5K Streak')
     expect(current5kStreakCardText).toContain('2days')
     expect(current5kStreakCardText).toContain('31 Oct - 1 Nov')
 
-    const longest5kStreakCardText = statsCards[3]?.text()
+    const longest5kStreakCardText = statsCards[4]?.text()
     expect(longest5kStreakCardText).toContain('Longest 5K Streak')
     expect(longest5kStreakCardText).toContain('18days')
     expect(longest5kStreakCardText).toContain('#3')
@@ -94,14 +99,14 @@ describe('UserView', () => {
   test('renders zero values when user has no activity', async () => {
     const mockUserData = {
       username: 'User2',
-      lastFetch: '2026-11-01T23:05:02',
-      dailySteps: {
-        '10/31': 0,
-      },
+      lastFetch: '2026-11-03T23:05:02',
+      dailySteps: { '10/31': 0 },
       stats: {
         dailyRank: null,
         weeklyAverage: 0.0,
         weeklyRank: null,
+        monthlyAverage: 0.0,
+        monthlyRank: null,
         longest5kStreak: 0,
         longest5kStreakRank: null,
         longest5kStreakStart: null,
@@ -120,7 +125,7 @@ describe('UserView', () => {
     await flushPromises()
 
     const statsCards = wrapper.findAllComponents(StatsCard)
-    expect(statsCards).toHaveLength(4)
+    expect(statsCards).toHaveLength(5)
 
     const todayCardText = statsCards[0]?.text()
     expect(todayCardText).toContain('Today')
@@ -131,16 +136,56 @@ describe('UserView', () => {
     expect(weekCardText).toContain('This Week')
     expect(weekCardText).toContain('0steps/day')
     expect(weekCardText).not.toContain('Rank')
-    expect(weekCardText).toContain('26 Oct - 1 Nov')
+    expect(weekCardText).toContain('2 Nov - 3 Nov')
 
-    const current5kStreakCardText = statsCards[2]?.text()
+    const monthCardText = statsCards[2]?.text()
+    expect(monthCardText).toContain('November')
+    expect(monthCardText).toContain('0steps/day')
+    expect(monthCardText).not.toContain('Rank')
+    expect(monthCardText).toContain('1 Nov - 3 Nov')
+
+    const current5kStreakCardText = statsCards[3]?.text()
     expect(current5kStreakCardText).toContain('Current 5K Streak')
     expect(current5kStreakCardText).toContain('0days')
 
-    const longest5kStreakCardText = statsCards[3]?.text()
+    const longest5kStreakCardText = statsCards[4]?.text()
     expect(longest5kStreakCardText).toContain('Longest 5K Streak')
     expect(longest5kStreakCardText).toContain('0days')
     expect(longest5kStreakCardText).not.toContain('Rank')
+  })
+
+  test('displays the completed November date range after November', async () => {
+    const mockUserData = {
+      username: 'User3',
+      lastFetch: '2026-12-01T23:05:02',
+      dailySteps: { '10/31': 0 },
+      stats: {
+        dailyRank: null,
+        weeklyAverage: 0.0,
+        weeklyRank: null,
+        monthlyAverage: 0.0,
+        monthlyRank: null,
+        longest5kStreak: 0,
+        longest5kStreakRank: null,
+        longest5kStreakStart: null,
+        longest5kStreakEnd: null,
+        current5kStreak: 0,
+        current5kStreakStart: null,
+        current5kStreakEnd: null,
+      },
+    }
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue({ ok: true, json: async () => mockUserData })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const wrapper = mountUserView()
+    await flushPromises()
+
+    const statsCards = wrapper.findAllComponents(StatsCard)
+    const monthCardText = statsCards[2]?.text()
+    expect(monthCardText).toContain('November')
+    expect(monthCardText).toContain('1 Nov - 30 Nov')
   })
 
   test('fetches user data again when route id changes', async () => {
