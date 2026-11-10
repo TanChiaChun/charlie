@@ -15,3 +15,9 @@ export interface PeriodLeaderboardRecord {
   averageSteps: number
   username: string
 }
+
+export interface Streak5kLeaderboardRecord {
+  rank: number
+  days: number
+  username: string
+}

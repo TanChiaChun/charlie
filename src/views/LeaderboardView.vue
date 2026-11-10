@@ -7,29 +7,36 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import type {
   DailyLeaderboardRecord,
   PeriodLeaderboardRecord,
+  Streak5kLeaderboardRecord,
 } from '@/types/leaderboard'
 
 interface LeaderboardData {
   lastFetch: string
   daily: Record<string, DailyLeaderboardRecord[]>
   weekly: Record<string, PeriodLeaderboardRecord[]>
+  streaks5k: Streak5kLeaderboardRecord[]
 }
 
 const periodTitles = {
   daily: 'Daily',
   weekly: 'Weekly',
+  streaks5k: '5K Streak',
 }
 
 const status = ref<'pending' | 'success' | 'error'>('pending')
 const leaderboardData = ref<LeaderboardData | null>(null)
-const selectedPeriod = ref<'daily' | 'weekly'>('daily')
+const selectedPeriod = ref<'daily' | 'weekly' | 'streaks5k'>('daily')
 
 const lastUpdated = computed(() =>
   leaderboardData.value?.lastFetch
     ? new Date(leaderboardData.value.lastFetch)
     : undefined,
 )
-const latestDate = computed(() => {
+const latestDateString = computed(() => {
+  if (selectedPeriod.value === 'streaks5k') {
+    return leaderboardData.value?.lastFetch.slice(0, 10)
+  }
+
   const data = leaderboardData.value?.[selectedPeriod.value] ?? {}
   const dates = Object.keys(data).sort().reverse()
 
@@ -37,52 +44,79 @@ const latestDate = computed(() => {
     (date) => data[date] !== undefined && data[date]?.length > 0,
   )
 })
+const latestDate = computed(() =>
+  latestDateString.value ? new Date(latestDateString.value) : undefined,
+)
 const formattedLatestDate = computed(() => {
   const formatDate = (date: Date): string =>
     date.toLocaleDateString('en-SG', { day: 'numeric', month: 'short' })
 
-  if (!latestDate.value || !lastUpdated.value) {
+  if (!latestDate.value) {
     return ''
   }
 
-  const startDate = new Date(latestDate.value)
-  if (selectedPeriod.value === 'daily') {
-    return formatDate(startDate)
+  switch (selectedPeriod.value) {
+    case 'daily':
+      return formatDate(latestDate.value)
+
+    case 'weekly':
+      if (!lastUpdated.value) {
+        return ''
+      }
+      const weekFullEndDate = new Date(latestDate.value)
+      weekFullEndDate.setDate(weekFullEndDate.getDate() + 6)
+      const weekEndDate =
+        weekFullEndDate < lastUpdated.value
+          ? weekFullEndDate
+          : lastUpdated.value
+      return `${formatDate(latestDate.value)} - ${formatDate(weekEndDate)}`
+
+    case 'streaks5k':
+      const minDate = new Date(2026, 9, 12)
+      return `${formatDate(minDate)} - ${formatDate(latestDate.value)}`
+
+    default:
+      return ''
   }
-
-  const weekEnd = new Date(startDate)
-  weekEnd.setDate(weekEnd.getDate() + 6)
-  const endDate = weekEnd < lastUpdated.value ? weekEnd : lastUpdated.value
-
-  return `${formatDate(startDate)} - ${formatDate(endDate)}`
 })
 const latestRecords = computed(() => {
-  if (!latestDate.value) {
-    return []
-  }
+  switch (selectedPeriod.value) {
+    case 'daily':
+      if (!latestDateString.value) {
+        return undefined
+      }
+      const dailyRecords = leaderboardData.value?.daily[latestDateString.value]
+      return dailyRecords?.map(({ rank, steps, username }) => ({
+        rank,
+        value: steps,
+        username,
+      }))
 
-  if (selectedPeriod.value === 'daily') {
-    return (
-      leaderboardData.value?.daily[latestDate.value]?.map(
-        ({ rank, steps, username }) => ({
-          rank,
-          value: steps,
-          username,
-        }),
-      ) ?? []
-    )
-  }
-  return (
-    leaderboardData.value?.weekly[latestDate.value]?.map(
-      ({ rank, averageSteps, username }) => ({
+    case 'weekly':
+      if (!latestDateString.value) {
+        return undefined
+      }
+      const weeklyRecords =
+        leaderboardData.value?.weekly[latestDateString.value]
+      return weeklyRecords?.map(({ rank, averageSteps, username }) => ({
         rank,
         value: Math.floor(averageSteps),
         username,
-      }),
-    ) ?? []
-  )
+      }))
+
+    case 'streaks5k':
+      const streaks5kRecords = leaderboardData.value?.streaks5k
+      return streaks5kRecords?.map(({ rank, days, username }) => ({
+        rank,
+        value: days,
+        username,
+      }))
+
+    default:
+      return undefined
+  }
 })
-const maxValue = computed(() => latestRecords.value.at(0)?.value ?? 1)
+const maxValue = computed(() => latestRecords.value?.at(0)?.value ?? 1)
 
 onMounted(async () => {
   try {
@@ -114,6 +148,7 @@ onMounted(async () => {
       <TabsList class="w-full">
         <TabsTrigger value="daily">Daily</TabsTrigger>
         <TabsTrigger value="weekly">Weekly</TabsTrigger>
+        <TabsTrigger value="streaks5k">5K Streak</TabsTrigger>
       </TabsList>
     </Tabs>
 

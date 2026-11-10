@@ -21,6 +21,7 @@ test('displays the latest available daily leaderboard', async ({ page }) => {
     weekly: {
       '2026-10-12': [{ rank: 1, averageSteps: 15756.3, username: 'User1' }],
     },
+    streaks5k: [{ rank: 1, days: 29, username: 'User2' }],
   }
   await page.route('**/leaderboard.json', async (route) => {
     await new Promise((resolve) => setTimeout(resolve, 1000))
@@ -68,6 +69,7 @@ test('switches between daily and weekly leaderboards', async ({ page }) => {
         { rank: 2, averageSteps: 15759.0, username: 'User3' },
       ],
     },
+    streaks5k: [{ rank: 1, days: 29, username: 'User2' }],
   }
   await page.route('**/leaderboard.json', (route) =>
     route.fulfill({ json: leaderboardData }),
@@ -93,6 +95,44 @@ test('switches between daily and weekly leaderboards', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Daily' })).toBeVisible()
   await expect(records).toHaveCount(1)
   await expect(firstRecord).toContainText('User1')
+})
+
+test('displays the 5K streak leaderboard', async ({ page }) => {
+  const leaderboardData = {
+    lastFetch: '2026-11-10T15:05:02',
+    daily: { '2026-11-10': [{ rank: 1, steps: 2883, username: 'User1' }] },
+    weekly: {
+      '2026-10-12': [{ rank: 1, averageSteps: 15756.3, username: 'User1' }],
+    },
+    streaks5k: [
+      { rank: 1, days: 29, username: '5kUser' },
+      { rank: 1, days: 29, username: 'User6' },
+      { rank: 3, days: 28, username: 'User10' },
+      { rank: 3, days: 28, username: 'User1' },
+      { rank: 5, days: 23, username: 'User5' },
+      { rank: 6, days: 22, username: 'User11' },
+      { rank: 7, days: 20, username: 'User3' },
+      { rank: 8, days: 18, username: 'User7' },
+      { rank: 9, days: 17, username: 'User8' },
+      { rank: 9, days: 17, username: 'User4' },
+      { rank: 9, days: 17, username: 'User9' },
+    ],
+  }
+  await page.route('**/leaderboard.json', (route) =>
+    route.fulfill({ json: leaderboardData }),
+  )
+  await page.goto('/#/leaderboard')
+
+  await page.getByRole('tab', { name: '5K Streak' }).click()
+  await expect(page.getByRole('heading', { name: '5K Streak' })).toBeVisible()
+  await expect(page.getByText('12 Oct - 10 Nov')).toBeVisible()
+
+  const records = page.getByTestId('leaderboard').locator(':scope > div')
+  await expect(records).toHaveCount(11)
+
+  const firstRecord = records.first()
+  await expect(firstRecord).toContainText('5kUser')
+  await expect(firstRecord).toContainText('29')
 })
 
 test('displays an error when leaderboard data fails to load', async ({

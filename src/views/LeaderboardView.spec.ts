@@ -77,6 +77,7 @@ describe('LeaderboardView', () => {
       weekly: {
         '2026-10-12': [{ rank: 1, averageSteps: 15756.3, username: 'User1' }],
       },
+      streaks5k: [{ rank: 1, days: 29, username: 'User2' }],
     }
     const fetchMock = vi
       .fn()
@@ -113,6 +114,7 @@ describe('LeaderboardView', () => {
           { rank: 3, averageSteps: 15136.3, username: 'User1' },
         ],
       },
+      streaks5k: [{ rank: 1, days: 29, username: 'User2' }],
     }
     const fetchMock = vi
       .fn()
@@ -136,6 +138,51 @@ describe('LeaderboardView', () => {
     const firstLeaderboardItemText = leaderboardItems[0]?.text()
     expect(firstLeaderboardItemText).toContain('WeekUser')
     expect(firstLeaderboardItemText).toContain('17,026')
+  })
+
+  test('displays the 5K streak leaderboard', async () => {
+    const mockLeaderboardData = {
+      lastFetch: '2026-11-10T15:05:02',
+      daily: { '2026-11-10': [{ rank: 1, steps: 2883, username: 'User1' }] },
+      weekly: {
+        '2026-10-12': [{ rank: 1, averageSteps: 15756.3, username: 'User1' }],
+      },
+      streaks5k: [
+        { rank: 1, days: 29, username: '5kUser' },
+        { rank: 1, days: 29, username: 'User6' },
+        { rank: 3, days: 28, username: 'User10' },
+        { rank: 3, days: 28, username: 'User1' },
+        { rank: 5, days: 23, username: 'User5' },
+        { rank: 6, days: 22, username: 'User11' },
+        { rank: 7, days: 20, username: 'User3' },
+        { rank: 8, days: 18, username: 'User7' },
+        { rank: 9, days: 17, username: 'User8' },
+        { rank: 9, days: 17, username: 'User4' },
+        { rank: 9, days: 17, username: 'User9' },
+      ],
+    }
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue({ ok: true, json: async () => mockLeaderboardData })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const wrapper = mount(LeaderboardView)
+    await flushPromises()
+
+    await wrapper.get('button[role="tab"]:nth-child(3)').trigger('mousedown')
+
+    const text = wrapper.text()
+    expect(text).toContain('Leaderboard')
+    expect(text).toContain('Last updated: 10 Nov, 3:05 pm')
+    expect(wrapper.get('h2').text()).toBe('5K Streak')
+    expect(text).toContain('12 Oct - 10 Nov')
+
+    const leaderboardItems = wrapper.findAllComponents(LeaderboardItem)
+    expect(leaderboardItems).toHaveLength(11)
+
+    const firstLeaderboardItemText = leaderboardItems[0]?.text()
+    expect(firstLeaderboardItemText).toContain('5kUser')
+    expect(firstLeaderboardItemText).toContain('29')
   })
 
   test('displays loading state while fetching leaderboard data', async () => {
