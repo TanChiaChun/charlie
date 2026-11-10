@@ -168,7 +168,7 @@ def calculate_weekly_stats(
             total_steps = sum(
                 daily_steps_by_user.get(user, {}).get(date, 0) for date in dates
             )
-            weekly_averages[user] = total_steps / len(dates)
+            weekly_averages[user] = total_steps / num_days
         weekly_ranks = rank_users(weekly_averages)
         weekly_stats[week_start] = {
             user: {
