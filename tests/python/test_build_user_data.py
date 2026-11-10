@@ -93,22 +93,10 @@ def test_calculate_user_5k_streaks() -> None:
 
 def test_calculate_weekly_stats() -> None:
     daily_steps_by_user = {
-        "user1": {
-            "10/27": 9680,
-            "10/26": 10190,
-            "10/25": 3500,
-        },
-        "user2": {
-            "10/27": 14964,
-            "10/26": 5316,
-            "10/25": 2100,
-        },
-        "user3": {
-            "10/25": 5600,
-        },
-        "user4": {
-            "10/26": 5702,
-        },
+        "user1": {"10/27": 9680, "10/26": 10190, "10/25": 3500},
+        "user2": {"10/27": 14964, "10/26": 5316, "10/25": 2100},
+        "user3": {"10/25": 5600},
+        "user4": {"10/26": 5702},
     }
     assert build_user_data.calculate_weekly_stats(
         daily_steps_by_user,
