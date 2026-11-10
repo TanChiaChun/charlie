@@ -18,6 +18,9 @@ test('displays the latest available daily leaderboard', async ({ page }) => {
         { rank: 10, steps: 15000, username: 'User1' },
       ],
     },
+    weekly: {
+      '2026-10-12': [{ rank: 1, averageSteps: 15756.3, username: 'User1' }],
+    },
   }
   await page.route('**/leaderboard.json', async (route) => {
     await new Promise((resolve) => setTimeout(resolve, 1000))
