@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test'
 
 const userData = {
   username: 'User1',
+  team: '1',
   lastFetch: '2026-11-01T23:05:02',
   dailySteps: { '11/01': 13668, '10/31': 8326 },
   stats: {
@@ -34,6 +35,7 @@ test('displays user view after data loads', async ({ page }) => {
   await expect(
     page.getByRole('heading', { name: 'Hello, User1' }),
   ).toBeVisible()
+  await expect(page.getByText('Team 1')).toBeVisible()
   await expect(page.getByText('Last updated: 1 Nov')).toBeVisible()
   await expect(
     page.getByRole('heading', { name: 'Your Daily Steps' }),

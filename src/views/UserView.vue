@@ -12,6 +12,7 @@ const route = useRoute()
 
 interface UserData {
   username: string
+  team: string
   lastFetch: string
   dailySteps: Record<string, number>
   stats: {
@@ -163,6 +164,7 @@ watch(
     <div class="flex items-end justify-between gap-3">
       <PageHeader
         :title="`Hello, ${userData.username}`"
+        :subtitle="`Team ${userData.team}`"
         :last-updated="lastFetch ?? undefined"
       />
       <RouterLink

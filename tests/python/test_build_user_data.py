@@ -218,6 +218,25 @@ def test_load_user_public_ids(
     }
 
 
+def test_load_user_teams(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    project_dir = tmp_path / "charlie"
+    project_dir.mkdir()
+    monkeypatch.chdir(project_dir)
+
+    input_dir = project_dir / ".." / "charlie-data" / "data" / "input"
+    input_dir.mkdir(parents=True)
+    (input_dir / "users.csv").write_text(
+        "username,team\nuser1,team1\nuser2,team2\n"
+    )
+
+    assert build_user_data.load_user_teams() == {
+        "user1": "team1",
+        "user2": "team2",
+    }
+
+
 def test_parse_date_string() -> None:
     assert build_user_data.parse_date_string("10/29", 2026) == dt.date(
         2026, 10, 29
@@ -410,6 +429,7 @@ def test_write_user_json_files(
     monkeypatch.chdir(tmp_path)
 
     user_public_ids = {"user1": "token1", "user2": "token2"}
+    user_teams = {"user1": "team1", "user2": "team2"}
     daily_steps_by_user = {
         "user1": {
             "11/08": 14925,
@@ -448,6 +468,7 @@ def test_write_user_json_files(
     }
     user_data_inputs = build_user_data.UserDataInputs(
         user_public_ids,
+        user_teams,
         daily_steps_by_user,
         daily_stats,
         weekly_stats,
@@ -463,6 +484,7 @@ def test_write_user_json_files(
     output_dir = Path("public", "users")
     assert json.loads((output_dir / "token1.json").read_text()) == {
         "username": "user1",
+        "team": "team1",
         "lastFetch": "2026-11-08T23:05:02",
         "dailySteps": {
             "11/08": 14925,
@@ -489,6 +511,7 @@ def test_write_user_json_files(
     }
     assert json.loads((output_dir / "token2.json").read_text()) == {
         "username": "user2",
+        "team": "team2",
         "lastFetch": "2026-11-08T23:05:02",
         "dailySteps": {},
         "stats": {

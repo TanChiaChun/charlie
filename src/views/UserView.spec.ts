@@ -36,6 +36,7 @@ describe('UserView', () => {
   test('renders user details and statistics correctly', async () => {
     const mockUserData = {
       username: 'User1',
+      team: '1',
       lastFetch: '2026-11-01T23:05:02',
       dailySteps: { '11/01': 13668, '10/31': 8326 },
       stats: {
@@ -63,6 +64,7 @@ describe('UserView', () => {
 
     expect(wrapper.get('h1').text()).toBe('Hello, User1')
     const text = wrapper.text()
+    expect(text).toContain('Team 1')
     expect(text).toContain('Last updated: 1 Nov, 11:05 pm')
     expect(text).toContain('Your Daily Steps')
     expect(text).toContain('23 Oct - 1 Nov')
@@ -105,6 +107,7 @@ describe('UserView', () => {
   test('renders zero values when user has no activity', async () => {
     const mockUserData = {
       username: 'User2',
+      team: '2',
       lastFetch: '2026-11-03T23:05:02',
       dailySteps: { '10/31': 0 },
       stats: {
@@ -163,6 +166,7 @@ describe('UserView', () => {
   test('displays the completed November date range after November', async () => {
     const mockUserData = {
       username: 'User3',
+      team: '3',
       lastFetch: '2026-12-01T23:05:02',
       dailySteps: { '10/31': 0 },
       stats: {

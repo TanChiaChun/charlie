@@ -14,6 +14,7 @@ class UserDataInputs:
     """Data required to generate per-user JSON files."""
 
     user_public_ids: dict[str, str]
+    user_teams: dict[str, str]
     daily_steps_by_user: dict[str, dict[str, int]]
     daily_stats: dict[dt.date, dict[str, dict[str, int | None]]]
     weekly_stats: dict[dt.date, dict[str, dict[str, int | float | None]]]
@@ -285,6 +286,16 @@ def load_user_public_ids() -> dict[str, str]:
     )
 
 
+def load_user_teams() -> dict[str, str]:
+    """Load user teams from the CSV file."""
+    with open(
+        Path(DATA_DIR, "input", "users.csv"), encoding="utf-8", newline=""
+    ) as csv_file:
+        csv_reader = csv.DictReader(csv_file)
+
+        return {row["username"]: row["team"] for row in csv_reader}
+
+
 def parse_date_string(date_string: str, year: int) -> dt.date:
     """Parse an MM/DD date string into a date using the given year."""
     return dt.date.strptime(f"{year}/{date_string}", "%Y/%m/%d")
@@ -424,6 +435,7 @@ def write_user_json_files(
 
         user_data = {
             "username": username,
+            "team": inputs.user_teams[username],
             "lastFetch": last_fetch,
             "dailySteps": get_recent_daily_steps(
                 inputs.daily_steps_by_user.get(username, {}), last_fetch_date
@@ -477,6 +489,7 @@ def main() -> None:
 
     user_public_ids = load_user_public_ids()
     registered_users = set(user_public_ids)
+    user_teams = load_user_teams()
 
     daily_steps_by_user = load_daily_steps_by_user(registered_users)
 
@@ -500,6 +513,7 @@ def main() -> None:
     write_user_json_files(
         UserDataInputs(
             user_public_ids,
+            user_teams,
             daily_steps_by_user,
             daily_stats,
             weekly_stats,
