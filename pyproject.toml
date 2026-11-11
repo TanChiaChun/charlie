@@ -6,7 +6,7 @@ requires-python = ">=3.14"
 [dependency-groups]
 dev = [
     "black",
-    "isort<9",
+    "isort<10",
     "mypy",
     "pylint",
     "pytest",
