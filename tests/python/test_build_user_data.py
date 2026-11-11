@@ -429,6 +429,7 @@ def test_write_user_json_files(
     monkeypatch.chdir(tmp_path)
 
     user_public_ids = {"user1": "token1", "user2": "token2"}
+    user_teams = {"user1": "team1", "user2": "team2"}
     daily_steps_by_user = {
         "user1": {
             "11/08": 14925,
@@ -467,6 +468,7 @@ def test_write_user_json_files(
     }
     user_data_inputs = build_user_data.UserDataInputs(
         user_public_ids,
+        user_teams,
         daily_steps_by_user,
         daily_stats,
         weekly_stats,
@@ -482,6 +484,7 @@ def test_write_user_json_files(
     output_dir = Path("public", "users")
     assert json.loads((output_dir / "token1.json").read_text()) == {
         "username": "user1",
+        "team": "team1",
         "lastFetch": "2026-11-08T23:05:02",
         "dailySteps": {
             "11/08": 14925,
@@ -508,6 +511,7 @@ def test_write_user_json_files(
     }
     assert json.loads((output_dir / "token2.json").read_text()) == {
         "username": "user2",
+        "team": "team2",
         "lastFetch": "2026-11-08T23:05:02",
         "dailySteps": {},
         "stats": {

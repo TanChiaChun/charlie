@@ -14,6 +14,7 @@ class UserDataInputs:
     """Data required to generate per-user JSON files."""
 
     user_public_ids: dict[str, str]
+    user_teams: dict[str, str]
     daily_steps_by_user: dict[str, dict[str, int]]
     daily_stats: dict[dt.date, dict[str, dict[str, int | None]]]
     weekly_stats: dict[dt.date, dict[str, dict[str, int | float | None]]]
@@ -434,6 +435,7 @@ def write_user_json_files(
 
         user_data = {
             "username": username,
+            "team": inputs.user_teams[username],
             "lastFetch": last_fetch,
             "dailySteps": get_recent_daily_steps(
                 inputs.daily_steps_by_user.get(username, {}), last_fetch_date
@@ -487,6 +489,7 @@ def main() -> None:
 
     user_public_ids = load_user_public_ids()
     registered_users = set(user_public_ids)
+    user_teams = load_user_teams()
 
     daily_steps_by_user = load_daily_steps_by_user(registered_users)
 
@@ -510,6 +513,7 @@ def main() -> None:
     write_user_json_files(
         UserDataInputs(
             user_public_ids,
+            user_teams,
             daily_steps_by_user,
             daily_stats,
             weekly_stats,
