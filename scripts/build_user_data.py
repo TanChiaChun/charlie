@@ -285,6 +285,16 @@ def load_user_public_ids() -> dict[str, str]:
     )
 
 
+def load_user_teams() -> dict[str, str]:
+    """Load user teams from the CSV file."""
+    with open(
+        Path(DATA_DIR, "input", "users.csv"), encoding="utf-8", newline=""
+    ) as csv_file:
+        csv_reader = csv.DictReader(csv_file)
+
+        return {row["username"]: row["team"] for row in csv_reader}
+
+
 def parse_date_string(date_string: str, year: int) -> dt.date:
     """Parse an MM/DD date string into a date using the given year."""
     return dt.date.strptime(f"{year}/{date_string}", "%Y/%m/%d")

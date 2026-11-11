@@ -218,6 +218,25 @@ def test_load_user_public_ids(
     }
 
 
+def test_load_user_teams(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    project_dir = tmp_path / "charlie"
+    project_dir.mkdir()
+    monkeypatch.chdir(project_dir)
+
+    input_dir = project_dir / ".." / "charlie-data" / "data" / "input"
+    input_dir.mkdir(parents=True)
+    (input_dir / "users.csv").write_text(
+        "username,team\nuser1,team1\nuser2,team2\n"
+    )
+
+    assert build_user_data.load_user_teams() == {
+        "user1": "team1",
+        "user2": "team2",
+    }
+
+
 def test_parse_date_string() -> None:
     assert build_user_data.parse_date_string("10/29", 2026) == dt.date(
         2026, 10, 29
