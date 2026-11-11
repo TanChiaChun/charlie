@@ -15,7 +15,10 @@ describe('UserView', () => {
   beforeEach(async () => {
     router = createRouter({
       history: createWebHashHistory(),
-      routes: [{ path: '/users/:id', component: UserView }],
+      routes: [
+        { path: '/leaderboard', component: { template: '<div></div>' } },
+        { path: '/users/:id', component: UserView },
+      ],
     })
     await router.push('/users/izG78Bhy')
   })
@@ -63,6 +66,9 @@ describe('UserView', () => {
     expect(text).toContain('Last updated: 1 Nov, 11:05 pm')
     expect(text).toContain('Your Daily Steps')
     expect(text).toContain('23 Oct - 1 Nov')
+
+    const leaderboardLink = wrapper.get('a[href="#/leaderboard"]')
+    expect(leaderboardLink.text()).toContain('View Leaderboard')
 
     const statsCards = wrapper.findAllComponents(StatsCard)
     expect(statsCards).toHaveLength(5)

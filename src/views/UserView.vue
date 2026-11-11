@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ArrowRight } from '@lucide/vue'
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
@@ -159,10 +160,18 @@ watch(
   <div v-if="status === 'pending'">Loading...</div>
   <div v-else-if="status === 'error'">Failed to load user data.</div>
   <div v-else-if="userData" class="space-y-5">
-    <PageHeader
-      :title="`Hello, ${userData.username}`"
-      :last-updated="lastFetch ?? undefined"
-    />
+    <div class="flex items-end justify-between gap-3">
+      <PageHeader
+        :title="`Hello, ${userData.username}`"
+        :last-updated="lastFetch ?? undefined"
+      />
+      <RouterLink
+        to="/leaderboard"
+        class="inline-flex items-center gap-1 text-xs font-medium hover:underline sm:text-sm"
+        >View Leaderboard
+        <ArrowRight class="size-4" />
+      </RouterLink>
+    </div>
 
     <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
       <StatsCard
