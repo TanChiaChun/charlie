@@ -17,8 +17,8 @@ RAW_DATA_DIR = DATA_DIR / "raw"
 class DailyStats(TypedDict):
     """Daily statistics for a user."""
 
-    todaySteps: int
-    dailyRank: int | None
+    steps: int
+    rank: int | None
 
 
 class PeriodStats(TypedDict):
@@ -99,8 +99,8 @@ def calculate_daily_stats(
         daily_ranks = rank_users(steps_by_user)
         daily_stats[target_date] = {
             user: {
-                "todaySteps": steps_by_user.get(user, 0),
-                "dailyRank": daily_ranks.get(user),
+                "steps": steps_by_user.get(user, 0),
+                "rank": daily_ranks.get(user),
             }
             for user in registered_users
         }
@@ -358,14 +358,14 @@ def write_leaderboard_json_file(
             (
                 (user, stats)
                 for user, stats in user_stats.items()
-                if stats["dailyRank"] is not None and stats["dailyRank"] <= 10
+                if stats["rank"] is not None and stats["rank"] <= 10
             ),
-            key=lambda x: (x[1]["dailyRank"], x[0].casefold()),
+            key=lambda x: (x[1]["rank"], x[0].casefold()),
         )
         daily_leaderboard[date.isoformat()] = [
             {
-                "rank": stats["dailyRank"],
-                "steps": stats["todaySteps"],
+                "rank": stats["rank"],
+                "steps": stats["steps"],
                 "username": user,
             }
             for user, stats in sorted_user_stats
@@ -451,7 +451,7 @@ def write_user_json_files(
     current_week_start = max(inputs.weekly_stats)
     for username, public_id in inputs.user_public_ids.items():
         daily_stats: DailyStats = inputs.daily_stats[last_fetch_date].get(
-            username, {"todaySteps": 0, "dailyRank": None}
+            username, {"steps": 0, "rank": None}
         )
         weekly_stats: PeriodStats = inputs.weekly_stats[current_week_start].get(
             username, {"averageSteps": 0.0, "rank": None}
@@ -480,7 +480,7 @@ def write_user_json_files(
                 inputs.daily_steps_by_user.get(username, {}), last_fetch_date
             ),
             "stats": {
-                "dailyRank": daily_stats["dailyRank"],
+                "dailyRank": daily_stats["rank"],
                 "weeklyAverage": weekly_stats["averageSteps"],
                 "weeklyRank": weekly_stats["rank"],
                 "monthlyAverage": monthly_stats["averageSteps"],

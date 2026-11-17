@@ -42,16 +42,16 @@ def test_calculate_daily_stats() -> None:
         {"user1", "user2", "user3", "user4"},
     ) == {
         dt.date(2026, 10, 28): {
-            "user1": {"todaySteps": 8000, "dailyRank": 2},
-            "user2": {"todaySteps": 10000, "dailyRank": 1},
-            "user3": {"todaySteps": 0, "dailyRank": None},
-            "user4": {"todaySteps": 0, "dailyRank": None},
+            "user1": {"steps": 8000, "rank": 2},
+            "user2": {"steps": 10000, "rank": 1},
+            "user3": {"steps": 0, "rank": None},
+            "user4": {"steps": 0, "rank": None},
         },
         dt.date(2026, 10, 27): {
-            "user1": {"todaySteps": 0, "dailyRank": None},
-            "user2": {"todaySteps": 0, "dailyRank": None},
-            "user3": {"todaySteps": 0, "dailyRank": None},
-            "user4": {"todaySteps": 12000, "dailyRank": 1},
+            "user1": {"steps": 0, "rank": None},
+            "user2": {"steps": 0, "rank": None},
+            "user3": {"steps": 0, "rank": None},
+            "user4": {"steps": 12000, "rank": 1},
         },
     }
 
@@ -263,18 +263,18 @@ def test_write_leaderboard_json_file(
     daily_stats: dict[dt.date, dict[str, build_user_data.DailyStats]] = {
         dt.date(2026, 11, 6): {},
         dt.date(2026, 11, 5): {
-            "user1": {"todaySteps": 10339, "dailyRank": 1},
-            "user2": {"todaySteps": 6215, "dailyRank": 3},
-            "User3": {"todaySteps": 10339, "dailyRank": 1},
-            "user9": {"todaySteps": 5159, "dailyRank": 5},
-            "user5": {"todaySteps": 2663, "dailyRank": 9},
-            "user11": {"todaySteps": 2351, "dailyRank": 11},
-            "user8": {"todaySteps": 3318, "dailyRank": 8},
-            "user12": {"todaySteps": 0, "dailyRank": None},
-            "user10": {"todaySteps": 5060, "dailyRank": 6},
-            "user7": {"todaySteps": 3592, "dailyRank": 7},
-            "user6": {"todaySteps": 2515, "dailyRank": 10},
-            "user4": {"todaySteps": 5818, "dailyRank": 4},
+            "user1": {"steps": 10339, "rank": 1},
+            "user2": {"steps": 6215, "rank": 3},
+            "User3": {"steps": 10339, "rank": 1},
+            "user9": {"steps": 5159, "rank": 5},
+            "user5": {"steps": 2663, "rank": 9},
+            "user11": {"steps": 2351, "rank": 11},
+            "user8": {"steps": 3318, "rank": 8},
+            "user12": {"steps": 0, "rank": None},
+            "user10": {"steps": 5060, "rank": 6},
+            "user7": {"steps": 3592, "rank": 7},
+            "user6": {"steps": 2515, "rank": 10},
+            "user4": {"steps": 5818, "rank": 4},
         },
     }
     weekly_stats: dict[dt.date, dict[str, build_user_data.PeriodStats]] = {
@@ -530,7 +530,7 @@ def test_write_user_json_files(
         }
     }
     daily_stats: dict[dt.date, dict[str, build_user_data.DailyStats]] = {
-        dt.date(2026, 11, 8): {"user1": {"todaySteps": 14925, "dailyRank": 1}}
+        dt.date(2026, 11, 8): {"user1": {"steps": 14925, "rank": 1}}
     }
     weekly_stats: dict[dt.date, dict[str, build_user_data.PeriodStats]] = {
         dt.date(2026, 11, 2): {"user1": {"averageSteps": 13432.3, "rank": 9}},
