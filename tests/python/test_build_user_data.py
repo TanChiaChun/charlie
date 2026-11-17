@@ -346,6 +346,10 @@ def test_write_leaderboard_json_file(
         "User19": {"averageSteps": 10143.2, "rank": 19},
         "User20": {"averageSteps": 10113.5, "rank": 20},
     }
+    monthly_team_stats: dict[str, build_user_data.PeriodStats] = {
+        "Team1": {"averageSteps": 9000.0, "rank": 1},
+        "Team2": {"averageSteps": 6000.0, "rank": 2},
+    }
     streaks_5k_stats: dict[str, build_user_data.StreaksStats] = {
         "User1": {
             "longestStreak": 17,
@@ -452,6 +456,7 @@ def test_write_leaderboard_json_file(
             daily_stats,
             weekly_stats,
             monthly_stats,
+            monthly_team_stats,
             streaks_5k_stats,
         ),
         "2026-11-06T07:05:02",
@@ -515,6 +520,12 @@ def test_write_leaderboard_json_file(
         {"rank": 18, "averageSteps": 10572.9, "username": "User18"},
         {"rank": 19, "averageSteps": 10143.2, "username": "User19"},
         {"rank": 20, "averageSteps": 10113.5, "username": "User20"},
+    ]
+
+    assert len(result["monthlyTeams"]) == 2
+    assert result["monthlyTeams"] == [
+        {"rank": 1, "averageSteps": 9000.0, "team": "Team1"},
+        {"rank": 2, "averageSteps": 6000.0, "team": "Team2"},
     ]
 
     assert len(result["streaks5k"]) == 11

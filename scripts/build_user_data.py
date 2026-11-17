@@ -48,6 +48,7 @@ class LeaderboardData:
     daily_stats: dict[dt.date, dict[str, DailyStats]]
     weekly_stats: dict[dt.date, dict[str, PeriodStats]]
     monthly_stats: dict[str, PeriodStats]
+    monthly_team_stats: dict[str, PeriodStats]
     streaks_5k_stats: dict[str, StreaksStats]
 
 
@@ -438,6 +439,23 @@ def write_leaderboard_json_file(
         for user, stats in sorted_monthly_stats
     ]
 
+    sorted_monthly_team_stats = sorted(
+        (
+            (team, stats)
+            for team, stats in leaderboard_data.monthly_team_stats.items()
+            if stats["rank"] is not None
+        ),
+        key=lambda x: (x[1]["rank"], x[0].casefold()),
+    )
+    monthly_team_leaderboard = [
+        {
+            "rank": stats["rank"],
+            "averageSteps": stats["averageSteps"],
+            "team": team,
+        }
+        for team, stats in sorted_monthly_team_stats
+    ]
+
     sorted_streaks_5k_stats = sorted(
         (
             (user, stats)
@@ -461,6 +479,7 @@ def write_leaderboard_json_file(
         "daily": daily_leaderboard,
         "weekly": weekly_leaderboard,
         "monthly": monthly_leaderboard,
+        "monthlyTeams": monthly_team_leaderboard,
         "streaks5k": streaks_5k_leaderboard,
     }
 
@@ -562,6 +581,7 @@ def main() -> None:
         min(last_fetch_date, dt.date(2026, 11, 30)),
         registered_users,
     )
+    monthly_team_stats = calculate_monthly_team_stats(monthly_stats, user_teams)
     streaks_5k_stats = calculate_5k_streaks_stats(
         daily_steps_by_user, last_fetch_date, registered_users
     )
@@ -581,7 +601,11 @@ def main() -> None:
     )
     write_leaderboard_json_file(
         LeaderboardData(
-            daily_stats, weekly_stats, monthly_stats, streaks_5k_stats
+            daily_stats,
+            weekly_stats,
+            monthly_stats,
+            monthly_team_stats,
+            streaks_5k_stats,
         ),
         last_fetch,
     )
