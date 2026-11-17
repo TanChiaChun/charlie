@@ -70,7 +70,7 @@ def calculate_5k_streaks_stats(
             daily_steps, last_fetch_date
         )
 
-    ranks = rank_users(
+    ranks = rank_by_scores(
         {user: stats["longestStreak"] for user, stats in streaks_stats.items()}
     )
     for user, stats in streaks_stats.items():
@@ -96,7 +96,7 @@ def calculate_daily_stats(
             user: daily_steps_by_user.get(user, {}).get(target_date_key, 0)
             for user in registered_users
         }
-        daily_ranks = rank_users(steps_by_user)
+        daily_ranks = rank_by_scores(steps_by_user)
         daily_stats[target_date] = {
             user: {
                 "steps": steps_by_user.get(user, 0),
@@ -127,7 +127,7 @@ def calculate_monthly_stats(
             daily_steps_by_user.get(user, {}).get(date, 0) for date in dates
         )
         monthly_averages[user] = total_steps / num_days
-    monthly_ranks = rank_users(monthly_averages)
+    monthly_ranks = rank_by_scores(monthly_averages)
 
     return {
         user: {
@@ -223,7 +223,7 @@ def calculate_weekly_stats(
                 daily_steps_by_user.get(user, {}).get(date, 0) for date in dates
             )
             weekly_averages[user] = total_steps / num_days
-        weekly_ranks = rank_users(weekly_averages)
+        weekly_ranks = rank_by_scores(weekly_averages)
         weekly_stats[week_start] = {
             user: {
                 "averageSteps": weekly_averages[user],
@@ -323,21 +323,21 @@ def parse_date_string(date_string: str, year: int) -> dt.date:
     return dt.date.strptime(f"{year}/{date_string}", "%Y/%m/%d")
 
 
-def rank_users(user_scores: Mapping[str, int | float]) -> dict[str, int]:
+def rank_by_scores(scores: Mapping[str, int | float]) -> dict[str, int]:
     """Rank by descending score, sharing ties and excluding zero scores."""
-    sorted_users = sorted(user_scores.items(), key=lambda x: x[1], reverse=True)
+    sorted_scores = sorted(scores.items(), key=lambda x: x[1], reverse=True)
 
     ranks = {}
     previous_score = None
     previous_rank = 0
-    for position, (user, score) in enumerate(sorted_users, start=1):
+    for position, (name, score) in enumerate(sorted_scores, start=1):
         if score <= 0:
             break
 
         if score != previous_score:
             previous_rank = position
 
-        ranks[user] = previous_rank
+        ranks[name] = previous_rank
         previous_score = score
 
     return ranks

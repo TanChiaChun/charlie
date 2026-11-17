@@ -243,8 +243,8 @@ def test_parse_date_string() -> None:
     )
 
 
-def test_rank_users() -> None:
-    assert build_user_data.rank_users(
+def test_rank_by_scores() -> None:
+    assert build_user_data.rank_by_scores(
         {
             "user1": 10000,
             "user2": 12000,
