@@ -7,9 +7,9 @@ import UserView from '@/views/UserView.vue'
 const router = createRouter({
   history: createWebHashHistory(import.meta.env.BASE_URL),
   routes: [
-    { path: '/leaderboard', component: LeaderboardView },
-    { path: '/users/:id', component: UserView },
-    { path: '/:pathMatch(.*)*', component: NotFoundView },
+    { component: LeaderboardView, path: '/leaderboard' },
+    { component: UserView, path: '/users/:id' },
+    { component: NotFoundView, path: '/:pathMatch(.*)*' },
   ],
 })
 

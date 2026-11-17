@@ -2,17 +2,17 @@
 import { computed } from 'vue'
 
 const props = defineProps<{
-  title: string
-  subtitle?: string
   lastUpdated?: Date
+  subtitle?: string
+  title: string
 }>()
 
 const formattedLastUpdated = computed(() =>
   props.lastUpdated?.toLocaleString('en-SG', {
-    month: 'short',
     day: 'numeric',
     hour: 'numeric',
     minute: '2-digit',
+    month: 'short',
   }),
 )
 </script>

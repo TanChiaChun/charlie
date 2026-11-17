@@ -1,33 +1,34 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 
-import LeaderboardItem from '@/components/LeaderboardItem.vue'
-import PageHeader from '@/components/PageHeader.vue'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import type {
   DailyLeaderboardRecord,
   PeriodLeaderboardRecord,
   Streak5kLeaderboardRecord,
 } from '@/types/leaderboard'
 
+import LeaderboardItem from '@/components/LeaderboardItem.vue'
+import PageHeader from '@/components/PageHeader.vue'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+
 interface LeaderboardData {
-  lastFetch: string
   daily: Record<string, DailyLeaderboardRecord[]>
-  weekly: Record<string, PeriodLeaderboardRecord[]>
+  lastFetch: string
   monthly: PeriodLeaderboardRecord[]
   streaks5k: Streak5kLeaderboardRecord[]
+  weekly: Record<string, PeriodLeaderboardRecord[]>
 }
 
 const periodTitles = {
   daily: 'Daily',
-  weekly: 'Weekly',
   monthly: 'November',
   streaks5k: '5K Streak',
+  weekly: 'Weekly',
 }
 
-const status = ref<'pending' | 'success' | 'error'>('pending')
+const status = ref<'error' | 'pending' | 'success'>('pending')
 const leaderboardData = ref<LeaderboardData | null>(null)
-const selectedPeriod = ref<'daily' | 'weekly' | 'monthly' | 'streaks5k'>(
+const selectedPeriod = ref<'daily' | 'monthly' | 'streaks5k' | 'weekly'>(
   'daily',
 )
 
@@ -66,18 +67,6 @@ const formattedLatestDate = computed(() => {
     case 'daily':
       return formatDate(latestDate.value)
 
-    case 'weekly':
-      if (!lastUpdated.value) {
-        return ''
-      }
-      const weekFullEndDate = new Date(latestDate.value)
-      weekFullEndDate.setDate(weekFullEndDate.getDate() + 6)
-      const weekEndDate =
-        weekFullEndDate < lastUpdated.value
-          ? weekFullEndDate
-          : lastUpdated.value
-      return `${formatDate(latestDate.value)} - ${formatDate(weekEndDate)}`
-
     case 'monthly':
       if (!lastUpdated.value) {
         return ''
@@ -93,6 +82,18 @@ const formattedLatestDate = computed(() => {
       const minDate = new Date(2026, 9, 12)
       return `${formatDate(minDate)} - ${formatDate(latestDate.value)}`
 
+    case 'weekly':
+      if (!lastUpdated.value) {
+        return ''
+      }
+      const weekFullEndDate = new Date(latestDate.value)
+      weekFullEndDate.setDate(weekFullEndDate.getDate() + 6)
+      const weekEndDate =
+        weekFullEndDate < lastUpdated.value
+          ? weekFullEndDate
+          : lastUpdated.value
+      return `${formatDate(latestDate.value)} - ${formatDate(weekEndDate)}`
+
     default:
       return ''
   }
@@ -106,8 +107,24 @@ const latestRecords = computed(() => {
       const dailyRecords = leaderboardData.value?.daily[latestDateString.value]
       return dailyRecords?.map(({ rank, steps, username }) => ({
         rank,
-        value: steps,
         username,
+        value: steps,
+      }))
+
+    case 'monthly':
+      const monthlyRecords = leaderboardData.value?.monthly
+      return monthlyRecords?.map(({ averageSteps, rank, username }) => ({
+        rank,
+        username,
+        value: Math.floor(averageSteps),
+      }))
+
+    case 'streaks5k':
+      const streaks5kRecords = leaderboardData.value?.streaks5k
+      return streaks5kRecords?.map(({ days, rank, username }) => ({
+        rank,
+        username,
+        value: days,
       }))
 
     case 'weekly':
@@ -116,26 +133,10 @@ const latestRecords = computed(() => {
       }
       const weeklyRecords =
         leaderboardData.value?.weekly[latestDateString.value]
-      return weeklyRecords?.map(({ rank, averageSteps, username }) => ({
+      return weeklyRecords?.map(({ averageSteps, rank, username }) => ({
         rank,
+        username,
         value: Math.floor(averageSteps),
-        username,
-      }))
-
-    case 'monthly':
-      const monthlyRecords = leaderboardData.value?.monthly
-      return monthlyRecords?.map(({ rank, averageSteps, username }) => ({
-        rank,
-        value: Math.floor(averageSteps),
-        username,
-      }))
-
-    case 'streaks5k':
-      const streaks5kRecords = leaderboardData.value?.streaks5k
-      return streaks5kRecords?.map(({ rank, days, username }) => ({
-        rank,
-        value: days,
-        username,
       }))
 
     default:

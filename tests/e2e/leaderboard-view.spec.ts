@@ -2,9 +2,7 @@ import { expect, test } from '@playwright/test'
 
 test('displays the latest available daily leaderboard', async ({ page }) => {
   const leaderboardData = {
-    lastFetch: '2026-11-06T20:05:02',
     daily: {
-      '2026-11-06': [],
       '2026-11-05': [
         { rank: 1, steps: 30000, username: 'User9' },
         { rank: 2, steps: 29636, username: 'User10' },
@@ -17,12 +15,14 @@ test('displays the latest available daily leaderboard', async ({ page }) => {
         { rank: 9, steps: 16495, username: 'User2' },
         { rank: 10, steps: 15000, username: 'User1' },
       ],
+      '2026-11-06': [],
     },
+    lastFetch: '2026-11-06T20:05:02',
+    monthly: [{ averageSteps: 19266.8, rank: 1, username: 'NovUser' }],
+    streaks5k: [{ days: 29, rank: 1, username: 'User2' }],
     weekly: {
-      '2026-10-12': [{ rank: 1, averageSteps: 15756.3, username: 'User1' }],
+      '2026-10-12': [{ averageSteps: 15756.3, rank: 1, username: 'User1' }],
     },
-    monthly: [{ rank: 1, averageSteps: 19266.8, username: 'NovUser' }],
-    streaks5k: [{ rank: 1, days: 29, username: 'User2' }],
   }
   await page.route('**/leaderboard.json', async (route) => {
     await new Promise((resolve) => setTimeout(resolve, 1000))
@@ -62,16 +62,16 @@ test('displays the latest available daily leaderboard', async ({ page }) => {
 
 test('switches between daily and weekly leaderboards', async ({ page }) => {
   const leaderboardData = {
-    lastFetch: '2026-11-10T02:05:02',
     daily: { '2026-11-10': [{ rank: 1, steps: 2883, username: 'User1' }] },
+    lastFetch: '2026-11-10T02:05:02',
+    monthly: [{ averageSteps: 19266.8, rank: 1, username: 'NovUser' }],
+    streaks5k: [{ days: 29, rank: 1, username: 'User2' }],
     weekly: {
       '2026-10-19': [
-        { rank: 1, averageSteps: 17026.8, username: 'WeekUser' },
-        { rank: 2, averageSteps: 15759.0, username: 'User3' },
+        { averageSteps: 17026.8, rank: 1, username: 'WeekUser' },
+        { averageSteps: 15759.0, rank: 2, username: 'User3' },
       ],
     },
-    monthly: [{ rank: 1, averageSteps: 19266.8, username: 'NovUser' }],
-    streaks5k: [{ rank: 1, days: 29, username: 'User2' }],
   }
   await page.route('**/leaderboard.json', (route) =>
     route.fulfill({ json: leaderboardData }),
@@ -101,16 +101,16 @@ test('switches between daily and weekly leaderboards', async ({ page }) => {
 
 test('displays the November leaderboard', async ({ page }) => {
   const leaderboardData = {
-    lastFetch: '2026-11-10T02:05:02',
     daily: { '2026-11-10': [{ rank: 1, steps: 2883, username: 'User1' }] },
-    weekly: {
-      '2026-10-12': [{ rank: 1, averageSteps: 15756.3, username: 'User1' }],
-    },
+    lastFetch: '2026-11-10T02:05:02',
     monthly: [
-      { rank: 1, averageSteps: 19266.8, username: 'NovUser' },
-      { rank: 2, averageSteps: 16451.5, username: 'User2' },
+      { averageSteps: 19266.8, rank: 1, username: 'NovUser' },
+      { averageSteps: 16451.5, rank: 2, username: 'User2' },
     ],
-    streaks5k: [{ rank: 1, days: 29, username: 'User2' }],
+    streaks5k: [{ days: 29, rank: 1, username: 'User2' }],
+    weekly: {
+      '2026-10-12': [{ averageSteps: 15756.3, rank: 1, username: 'User1' }],
+    },
   }
   await page.route('**/leaderboard.json', (route) =>
     route.fulfill({ json: leaderboardData }),
@@ -131,25 +131,25 @@ test('displays the November leaderboard', async ({ page }) => {
 
 test('displays the 5K streak leaderboard', async ({ page }) => {
   const leaderboardData = {
-    lastFetch: '2026-11-10T15:05:02',
     daily: { '2026-11-10': [{ rank: 1, steps: 2883, username: 'User1' }] },
-    weekly: {
-      '2026-10-12': [{ rank: 1, averageSteps: 15756.3, username: 'User1' }],
-    },
-    monthly: [{ rank: 1, averageSteps: 19266.8, username: 'NovUser' }],
+    lastFetch: '2026-11-10T15:05:02',
+    monthly: [{ averageSteps: 19266.8, rank: 1, username: 'NovUser' }],
     streaks5k: [
-      { rank: 1, days: 29, username: '5kUser' },
-      { rank: 1, days: 29, username: 'User6' },
-      { rank: 3, days: 28, username: 'User10' },
-      { rank: 3, days: 28, username: 'User1' },
-      { rank: 5, days: 23, username: 'User5' },
-      { rank: 6, days: 22, username: 'User11' },
-      { rank: 7, days: 20, username: 'User3' },
-      { rank: 8, days: 18, username: 'User7' },
-      { rank: 9, days: 17, username: 'User8' },
-      { rank: 9, days: 17, username: 'User4' },
-      { rank: 9, days: 17, username: 'User9' },
+      { days: 29, rank: 1, username: '5kUser' },
+      { days: 29, rank: 1, username: 'User6' },
+      { days: 28, rank: 3, username: 'User10' },
+      { days: 28, rank: 3, username: 'User1' },
+      { days: 23, rank: 5, username: 'User5' },
+      { days: 22, rank: 6, username: 'User11' },
+      { days: 20, rank: 7, username: 'User3' },
+      { days: 18, rank: 8, username: 'User7' },
+      { days: 17, rank: 9, username: 'User8' },
+      { days: 17, rank: 9, username: 'User4' },
+      { days: 17, rank: 9, username: 'User9' },
     ],
+    weekly: {
+      '2026-10-12': [{ averageSteps: 15756.3, rank: 1, username: 'User1' }],
+    },
   }
   await page.route('**/leaderboard.json', (route) =>
     route.fulfill({ json: leaderboardData }),

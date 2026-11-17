@@ -4,6 +4,7 @@ import { useMediaQuery } from '@vueuse/core'
 import { computed } from 'vue'
 
 import type { ChartConfig } from '@/components/ui/chart'
+
 import {
   ChartContainer,
   ChartCrosshair,
@@ -23,8 +24,8 @@ const isMobile = useMediaQuery('(max-width: 639px)')
 const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000
 const chartConfig = {
   steps: {
-    label: 'steps',
     color: 'var(--brand)',
+    label: 'steps',
   },
 } satisfies ChartConfig
 

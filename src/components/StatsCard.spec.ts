@@ -6,7 +6,7 @@ import StatsCard from './StatsCard.vue'
 describe('StatsCard', () => {
   test('renders title, formatted value and unit without rank', () => {
     const wrapper = mount(StatsCard, {
-      props: { title: 'Today', value: 10000, unit: 'steps' },
+      props: { title: 'Today', unit: 'steps', value: 10000 },
     })
 
     const text = wrapper.text()
@@ -19,11 +19,11 @@ describe('StatsCard', () => {
   test('renders title, formatted value, unit, rank and subtitle', () => {
     const wrapper = mount(StatsCard, {
       props: {
-        title: 'This Week',
-        value: 8888,
-        unit: 'steps/day',
         rank: 1,
         subtitle: '26 Oct - 1 Nov',
+        title: 'This Week',
+        unit: 'steps/day',
+        value: 8888,
       },
     })
 

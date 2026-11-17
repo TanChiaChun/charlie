@@ -11,28 +11,28 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 const route = useRoute()
 
 interface UserData {
-  username: string
-  team: string
-  lastFetch: string
   dailySteps: Record<string, number>
+  lastFetch: string
   stats: {
-    dailyRank: number | null
-    weeklyAverage: number
-    weeklyRank: number | null
-    monthlyAverage: number
-    monthlyRank: number | null
-    longest5kStreak: number
-    longest5kStreakRank: number | null
-    longest5kStreakStart: string | null
-    longest5kStreakEnd: string | null
     current5kStreak: number
-    current5kStreakStart: string | null
-    current5kStreakEnd: string | null
+    current5kStreakEnd: null | string
+    current5kStreakStart: null | string
+    dailyRank: null | number
+    longest5kStreak: number
+    longest5kStreakEnd: null | string
+    longest5kStreakRank: null | number
+    longest5kStreakStart: null | string
+    monthlyAverage: number
+    monthlyRank: null | number
+    weeklyAverage: number
+    weeklyRank: null | number
   }
+  team: string
+  username: string
 }
 
-const status = ref<'pending' | 'success' | 'error'>('pending')
-const userData = ref<UserData | null>(null)
+const status = ref<'error' | 'pending' | 'success'>('pending')
+const userData = ref<null | UserData>(null)
 
 const lastFetch = computed(() =>
   userData.value?.lastFetch ? new Date(userData.value.lastFetch) : null,
@@ -93,13 +93,13 @@ const monthRange = computed(() => {
   return `${formatDate(novStart)} - ${formatDate(novEnd)}`
 })
 const longest5kStreakRange = computed(() => {
-  const { longest5kStreakStart, longest5kStreakEnd } =
+  const { longest5kStreakEnd, longest5kStreakStart } =
     userData.value?.stats ?? {}
 
   return formatDateRange(longest5kStreakStart, longest5kStreakEnd)
 })
 const current5kStreakRange = computed(() => {
-  const { current5kStreakStart, current5kStreakEnd } =
+  const { current5kStreakEnd, current5kStreakStart } =
     userData.value?.stats ?? {}
 
   return formatDateRange(current5kStreakStart, current5kStreakEnd)
@@ -112,8 +112,8 @@ function formatDate(date: Date): string {
   })
 }
 function formatDateRange(
-  start: string | null | undefined,
-  end: string | null | undefined,
+  start: null | string | undefined,
+  end: null | string | undefined,
 ): string {
   if (!start || !end) {
     return ''
