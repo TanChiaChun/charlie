@@ -106,24 +106,24 @@ const latestRecords = computed(() => {
       }
       const dailyRecords = leaderboardData.value?.daily[latestDateString.value]
       return dailyRecords?.map(({ rank, steps, username }) => ({
+        name: username,
         rank,
-        username,
         value: steps,
       }))
 
     case 'monthly':
       const monthlyRecords = leaderboardData.value?.monthly
       return monthlyRecords?.map(({ averageSteps, rank, username }) => ({
+        name: username,
         rank,
-        username,
         value: Math.floor(averageSteps),
       }))
 
     case 'streaks5k':
       const streaks5kRecords = leaderboardData.value?.streaks5k
       return streaks5kRecords?.map(({ days, rank, username }) => ({
+        name: username,
         rank,
-        username,
         value: days,
       }))
 
@@ -134,8 +134,8 @@ const latestRecords = computed(() => {
       const weeklyRecords =
         leaderboardData.value?.weekly[latestDateString.value]
       return weeklyRecords?.map(({ averageSteps, rank, username }) => ({
+        name: username,
         rank,
-        username,
         value: Math.floor(averageSteps),
       }))
 
@@ -193,7 +193,7 @@ onMounted(async () => {
       <div class="flex flex-col gap-6 sm:gap-7" data-testid="leaderboard">
         <LeaderboardItem
           v-for="record in latestRecords"
-          :key="record.username"
+          :key="record.name"
           :record="record"
           :max-value="maxValue"
         />

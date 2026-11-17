@@ -8,7 +8,7 @@ describe('LeaderboardItem', () => {
     const wrapper = mount(LeaderboardItem, {
       props: {
         maxValue: 10000,
-        record: { rank: 1, username: 'User1', value: 8000 },
+        record: { name: 'User1', rank: 1, value: 8000 },
       },
     })
 

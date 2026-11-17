@@ -5,8 +5,8 @@ export interface DailyLeaderboardRecord {
 }
 
 export interface LeaderboardRecord {
+  name: string
   rank: number
-  username: string
   value: number
 }
 
