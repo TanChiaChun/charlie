@@ -260,7 +260,7 @@ def test_write_leaderboard_json_file(
 ) -> None:
     monkeypatch.setattr(build_user_data, "PUBLIC_DIR", tmp_path)
 
-    daily_stats: dict[dt.date, dict[str, dict[str, int | None]]] = {
+    daily_stats: dict[dt.date, dict[str, build_user_data.DailyStats]] = {
         dt.date(2026, 11, 6): {},
         dt.date(2026, 11, 5): {
             "user1": {"todaySteps": 10339, "dailyRank": 1},
@@ -277,7 +277,7 @@ def test_write_leaderboard_json_file(
             "user4": {"todaySteps": 5818, "dailyRank": 4},
         },
     }
-    weekly_stats: dict[dt.date, dict[str, dict[str, int | float | None]]] = {
+    weekly_stats: dict[dt.date, dict[str, build_user_data.WeeklyStats]] = {
         dt.date(2026, 10, 26): {
             "user1": {"weeklyAverage": 16367.0, "weeklyRank": 2},
             "user2": {"weeklyAverage": 15190.0, "weeklyRank": 5},
@@ -304,7 +304,7 @@ def test_write_leaderboard_json_file(
             "user6": {"weeklyRank": 7, "weeklyAverage": 15436.0},
         },
     }
-    monthly_stats: dict[str, dict[str, int | float | None]] = {
+    monthly_stats: dict[str, build_user_data.MonthlyStats] = {
         "User1": {"monthlyAverage": 19266.8, "monthlyRank": 1},
         "User2": {"monthlyAverage": 16451.5, "monthlyRank": 2},
         "User3": {"monthlyAverage": 15750.2, "monthlyRank": 3},
@@ -326,18 +326,106 @@ def test_write_leaderboard_json_file(
         "User19": {"monthlyAverage": 10143.2, "monthlyRank": 19},
         "User20": {"monthlyAverage": 10113.5, "monthlyRank": 20},
     }
-    streaks_5k_stats: dict[str, dict[str, int | dt.date | None]] = {
-        "User1": {"longest5kStreak": 17, "longest5kStreakRank": 9},
-        "User2": {"longest5kStreak": 23, "longest5kStreakRank": 5},
-        "User3": {"longest5kStreak": 29, "longest5kStreakRank": 1},
-        "User4": {"longest5kStreak": 22, "longest5kStreakRank": 6},
-        "User5": {"longest5kStreak": 20, "longest5kStreakRank": 7},
-        "User6": {"longest5kStreak": 29, "longest5kStreakRank": 1},
-        "User7": {"longest5kStreak": 24, "longest5kStreakRank": 4},
-        "User8": {"longest5kStreak": 18, "longest5kStreakRank": 8},
-        "User9": {"longest5kStreak": 17, "longest5kStreakRank": 9},
-        "User10": {"longest5kStreak": 29, "longest5kStreakRank": 1},
-        "User11": {"longest5kStreak": 17, "longest5kStreakRank": 9},
+    streaks_5k_stats: dict[str, build_user_data.Streaks5kStats] = {
+        "User1": {
+            "longest5kStreak": 17,
+            "longest5kStreakStart": None,
+            "longest5kStreakEnd": None,
+            "current5kStreak": 0,
+            "current5kStreakStart": None,
+            "current5kStreakEnd": None,
+            "longest5kStreakRank": 9,
+        },
+        "User2": {
+            "longest5kStreak": 23,
+            "longest5kStreakStart": None,
+            "longest5kStreakEnd": None,
+            "current5kStreak": 0,
+            "current5kStreakStart": None,
+            "current5kStreakEnd": None,
+            "longest5kStreakRank": 5,
+        },
+        "User3": {
+            "longest5kStreak": 29,
+            "longest5kStreakStart": None,
+            "longest5kStreakEnd": None,
+            "current5kStreak": 0,
+            "current5kStreakStart": None,
+            "current5kStreakEnd": None,
+            "longest5kStreakRank": 1,
+        },
+        "User4": {
+            "longest5kStreak": 22,
+            "longest5kStreakStart": None,
+            "longest5kStreakEnd": None,
+            "current5kStreak": 0,
+            "current5kStreakStart": None,
+            "current5kStreakEnd": None,
+            "longest5kStreakRank": 6,
+        },
+        "User5": {
+            "longest5kStreak": 20,
+            "longest5kStreakStart": None,
+            "longest5kStreakEnd": None,
+            "current5kStreak": 0,
+            "current5kStreakStart": None,
+            "current5kStreakEnd": None,
+            "longest5kStreakRank": 7,
+        },
+        "User6": {
+            "longest5kStreak": 29,
+            "longest5kStreakStart": None,
+            "longest5kStreakEnd": None,
+            "current5kStreak": 0,
+            "current5kStreakStart": None,
+            "current5kStreakEnd": None,
+            "longest5kStreakRank": 1,
+        },
+        "User7": {
+            "longest5kStreak": 24,
+            "longest5kStreakStart": None,
+            "longest5kStreakEnd": None,
+            "current5kStreak": 0,
+            "current5kStreakStart": None,
+            "current5kStreakEnd": None,
+            "longest5kStreakRank": 4,
+        },
+        "User8": {
+            "longest5kStreak": 18,
+            "longest5kStreakStart": None,
+            "longest5kStreakEnd": None,
+            "current5kStreak": 0,
+            "current5kStreakStart": None,
+            "current5kStreakEnd": None,
+            "longest5kStreakRank": 8,
+        },
+        "User9": {
+            "longest5kStreak": 17,
+            "longest5kStreakStart": None,
+            "longest5kStreakEnd": None,
+            "current5kStreak": 0,
+            "current5kStreakStart": None,
+            "current5kStreakEnd": None,
+            "longest5kStreakRank": 9,
+        },
+        "User10": {
+            "longest5kStreak": 29,
+            "longest5kStreakStart": None,
+            "longest5kStreakEnd": None,
+            "current5kStreak": 0,
+            "current5kStreakStart": None,
+            "current5kStreakEnd": None,
+            "longest5kStreakRank": 1,
+        },
+        "User11": {
+            "longest5kStreak": 17,
+            "longest5kStreakStart": None,
+            "longest5kStreakEnd": None,
+            "current5kStreak": 0,
+            "current5kStreakStart": None,
+            "current5kStreakEnd": None,
+            "longest5kStreakRank": 9,
+        },
     }
     build_user_data.write_leaderboard_json_file(
         daily_stats,
@@ -441,10 +529,10 @@ def test_write_user_json_files(
             "10/29": 11649,
         }
     }
-    daily_stats: dict[dt.date, dict[str, dict[str, int | None]]] = {
+    daily_stats: dict[dt.date, dict[str, build_user_data.DailyStats]] = {
         dt.date(2026, 11, 8): {"user1": {"todaySteps": 14925, "dailyRank": 1}}
     }
-    weekly_stats: dict[dt.date, dict[str, dict[str, int | float | None]]] = {
+    weekly_stats: dict[dt.date, dict[str, build_user_data.WeeklyStats]] = {
         dt.date(2026, 11, 2): {
             "user1": {"weeklyAverage": 13432.3, "weeklyRank": 9}
         },
@@ -452,10 +540,10 @@ def test_write_user_json_files(
             "user1": {"weeklyAverage": 9469.0, "weeklyRank": 10}
         },
     }
-    monthly_stats: dict[str, dict[str, int | float | None]] = {
+    monthly_stats: dict[str, build_user_data.MonthlyStats] = {
         "user1": {"monthlyAverage": 13085.2, "monthlyRank": 1},
     }
-    streaks_5k_stats: dict[str, dict[str, int | dt.date | None]] = {
+    streaks_5k_stats: dict[str, build_user_data.Streaks5kStats] = {
         "user1": {
             "longest5kStreak": 3,
             "longest5kStreakRank": 1,

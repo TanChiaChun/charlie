@@ -6,12 +6,45 @@ import json
 from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from typing import cast
+from typing import NotRequired, TypedDict, cast
 
 DATA_DIR = Path("..", "charlie-data", "data")
 MIN_DATE = dt.date(2026, 10, 12)
 PUBLIC_DIR = Path("public")
 RAW_DATA_DIR = DATA_DIR / "raw"
+
+
+class DailyStats(TypedDict):
+    """Daily statistics for a user."""
+
+    todaySteps: int
+    dailyRank: int | None
+
+
+class WeeklyStats(TypedDict):
+    """Weekly statistics for a user."""
+
+    weeklyAverage: float
+    weeklyRank: int | None
+
+
+class MonthlyStats(TypedDict):
+    """Monthly statistics for a user."""
+
+    monthlyAverage: float
+    monthlyRank: int | None
+
+
+class Streaks5kStats(TypedDict):
+    """5K streak statistics for a user."""
+
+    longest5kStreak: int
+    longest5kStreakStart: dt.date | None
+    longest5kStreakEnd: dt.date | None
+    current5kStreak: int
+    current5kStreakStart: dt.date | None
+    current5kStreakEnd: dt.date | None
+    longest5kStreakRank: NotRequired[int | None]
 
 
 @dataclass
@@ -21,17 +54,17 @@ class UserDataInputs:
     user_public_ids: dict[str, str]
     user_teams: dict[str, str]
     daily_steps_by_user: dict[str, dict[str, int]]
-    daily_stats: dict[dt.date, dict[str, dict[str, int | None]]]
-    weekly_stats: dict[dt.date, dict[str, dict[str, int | float | None]]]
-    monthly_stats: dict[str, dict[str, int | float | None]]
-    streaks_5k_stats: dict[str, dict[str, int | dt.date | None]]
+    daily_stats: dict[dt.date, dict[str, DailyStats]]
+    weekly_stats: dict[dt.date, dict[str, WeeklyStats]]
+    monthly_stats: dict[str, MonthlyStats]
+    streaks_5k_stats: dict[str, Streaks5kStats]
 
 
 def calculate_5k_streaks_stats(
     daily_steps_by_user: dict[str, dict[str, int]],
     last_fetch_date: dt.date,
     registered_users: set[str],
-) -> dict[str, dict[str, int | dt.date | None]]:
+) -> dict[str, Streaks5kStats]:
     """Calculate 5K streak statistics and longest-streak rankings for users."""
     streaks_stats = {}
 
@@ -46,7 +79,7 @@ def calculate_5k_streaks_stats(
 
     ranks = rank_users(
         {
-            user: cast(int, stats["longest5kStreak"])
+            user: stats["longest5kStreak"]
             for user, stats in streaks_stats.items()
         }
     )
@@ -61,9 +94,9 @@ def calculate_daily_stats(
     last_fetch_date: dt.date,
     registered_users: set[str],
     num_days: int = 2,
-) -> dict[dt.date, dict[str, dict[str, int | None]]]:
+) -> dict[dt.date, dict[str, DailyStats]]:
     """Calculate daily steps and ranks for registered users."""
-    daily_stats = {}
+    daily_stats: dict[dt.date, dict[str, DailyStats]] = {}
 
     for offset in range(num_days):
         target_date = last_fetch_date - dt.timedelta(days=offset)
@@ -89,7 +122,7 @@ def calculate_monthly_stats(
     daily_steps_by_user: dict[str, dict[str, int]],
     end_date: dt.date,
     registered_users: set[str],
-) -> dict[str, dict[str, int | float | None]]:
+) -> dict[str, MonthlyStats]:
     """Calculate monthly average steps and ranks for registered users."""
     month_start = end_date.replace(day=1)
     num_days = (end_date - month_start).days + 1
@@ -117,7 +150,7 @@ def calculate_monthly_stats(
 
 def calculate_user_5k_streaks(
     daily_steps: dict[dt.date, int], today: dt.date
-) -> dict[str, int | dt.date | None]:
+) -> Streaks5kStats:
     """Calculate a user's current and longest 5K streaks.
 
     A qualifying day has at least 5000 steps. Missing dates count as zero steps.
@@ -178,9 +211,9 @@ def calculate_weekly_stats(
     daily_steps_by_user: dict[str, dict[str, int]],
     end_date: dt.date,
     registered_users: set[str],
-) -> dict[dt.date, dict[str, dict[str, int | float | None]]]:
+) -> dict[dt.date, dict[str, WeeklyStats]]:
     """Calculate weekly average steps and ranks for registered users."""
-    weekly_stats = {}
+    weekly_stats: dict[dt.date, dict[str, WeeklyStats]] = {}
 
     week_start = MIN_DATE
     while week_start <= end_date:
@@ -321,10 +354,10 @@ def rank_users(user_scores: Mapping[str, int | float]) -> dict[str, int]:
 
 
 def write_leaderboard_json_file(
-    daily_stats: dict[dt.date, dict[str, dict[str, int | None]]],
-    weekly_stats: dict[dt.date, dict[str, dict[str, int | float | None]]],
-    monthly_stats: dict[str, dict[str, int | float | None]],
-    streaks_5k_stats: dict[str, dict[str, int | dt.date | None]],
+    daily_stats: dict[dt.date, dict[str, DailyStats]],
+    weekly_stats: dict[dt.date, dict[str, WeeklyStats]],
+    monthly_stats: dict[str, MonthlyStats],
+    streaks_5k_stats: dict[str, Streaks5kStats],
     last_fetch: str,
 ) -> None:
     """Write leaderboard data to a JSON file."""
@@ -427,10 +460,27 @@ def write_user_json_files(
 
     current_week_start = max(inputs.weekly_stats)
     for username, public_id in inputs.user_public_ids.items():
-        daily_stats = inputs.daily_stats[last_fetch_date].get(username, {})
-        weekly_stats = inputs.weekly_stats[current_week_start].get(username, {})
-        monthly_stats = inputs.monthly_stats.get(username, {})
-        streaks_5k_stats = inputs.streaks_5k_stats.get(username, {})
+        daily_stats: DailyStats = inputs.daily_stats[last_fetch_date].get(
+            username, {"todaySteps": 0, "dailyRank": None}
+        )
+        weekly_stats: WeeklyStats = inputs.weekly_stats[current_week_start].get(
+            username, {"weeklyAverage": 0.0, "weeklyRank": None}
+        )
+        monthly_stats: MonthlyStats = inputs.monthly_stats.get(
+            username, {"monthlyAverage": 0.0, "monthlyRank": None}
+        )
+        streaks_5k_stats: Streaks5kStats = inputs.streaks_5k_stats.get(
+            username,
+            {
+                "longest5kStreak": 0,
+                "longest5kStreakStart": None,
+                "longest5kStreakEnd": None,
+                "current5kStreak": 0,
+                "current5kStreakStart": None,
+                "current5kStreakEnd": None,
+                "longest5kStreakRank": None,
+            },
+        )
 
         user_data = {
             "username": username,
@@ -440,39 +490,25 @@ def write_user_json_files(
                 inputs.daily_steps_by_user.get(username, {}), last_fetch_date
             ),
             "stats": {
-                "dailyRank": daily_stats.get("dailyRank"),
-                "weeklyAverage": weekly_stats.get("weeklyAverage", 0),
-                "weeklyRank": weekly_stats.get("weeklyRank"),
-                "monthlyAverage": monthly_stats.get("monthlyAverage", 0),
-                "monthlyRank": monthly_stats.get("monthlyRank"),
-                "longest5kStreak": streaks_5k_stats.get("longest5kStreak", 0),
-                "longest5kStreakRank": streaks_5k_stats.get(
-                    "longest5kStreakRank"
-                ),
+                "dailyRank": daily_stats["dailyRank"],
+                "weeklyAverage": weekly_stats["weeklyAverage"],
+                "weeklyRank": weekly_stats["weeklyRank"],
+                "monthlyAverage": monthly_stats["monthlyAverage"],
+                "monthlyRank": monthly_stats["monthlyRank"],
+                "longest5kStreak": streaks_5k_stats["longest5kStreak"],
+                "longest5kStreakRank": streaks_5k_stats["longest5kStreakRank"],
                 "longest5kStreakStart": format_date(
-                    cast(
-                        dt.date | None,
-                        streaks_5k_stats.get("longest5kStreakStart"),
-                    )
+                    streaks_5k_stats["longest5kStreakStart"]
                 ),
                 "longest5kStreakEnd": format_date(
-                    cast(
-                        dt.date | None,
-                        streaks_5k_stats.get("longest5kStreakEnd"),
-                    )
+                    streaks_5k_stats["longest5kStreakEnd"]
                 ),
-                "current5kStreak": streaks_5k_stats.get("current5kStreak", 0),
+                "current5kStreak": streaks_5k_stats["current5kStreak"],
                 "current5kStreakStart": format_date(
-                    cast(
-                        dt.date | None,
-                        streaks_5k_stats.get("current5kStreakStart"),
-                    )
+                    streaks_5k_stats["current5kStreakStart"]
                 ),
                 "current5kStreakEnd": format_date(
-                    cast(
-                        dt.date | None,
-                        streaks_5k_stats.get("current5kStreakEnd"),
-                    )
+                    streaks_5k_stats["current5kStreakEnd"]
                 ),
             },
         }
