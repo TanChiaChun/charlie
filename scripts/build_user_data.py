@@ -21,18 +21,11 @@ class DailyStats(TypedDict):
     dailyRank: int | None
 
 
-class WeeklyStats(TypedDict):
-    """Weekly statistics for a user."""
+class PeriodStats(TypedDict):
+    """User statistics for a period."""
 
-    weeklyAverage: float
-    weeklyRank: int | None
-
-
-class MonthlyStats(TypedDict):
-    """Monthly statistics for a user."""
-
-    monthlyAverage: float
-    monthlyRank: int | None
+    averageSteps: float
+    rank: int | None
 
 
 class StreaksStats(TypedDict):
@@ -55,8 +48,8 @@ class UserDataInputs:
     user_teams: dict[str, str]
     daily_steps_by_user: dict[str, dict[str, int]]
     daily_stats: dict[dt.date, dict[str, DailyStats]]
-    weekly_stats: dict[dt.date, dict[str, WeeklyStats]]
-    monthly_stats: dict[str, MonthlyStats]
+    weekly_stats: dict[dt.date, dict[str, PeriodStats]]
+    monthly_stats: dict[str, PeriodStats]
     streaks_5k_stats: dict[str, StreaksStats]
 
 
@@ -119,7 +112,7 @@ def calculate_monthly_stats(
     daily_steps_by_user: dict[str, dict[str, int]],
     end_date: dt.date,
     registered_users: set[str],
-) -> dict[str, MonthlyStats]:
+) -> dict[str, PeriodStats]:
     """Calculate monthly average steps and ranks for registered users."""
     month_start = end_date.replace(day=1)
     num_days = (end_date - month_start).days + 1
@@ -138,8 +131,8 @@ def calculate_monthly_stats(
 
     return {
         user: {
-            "monthlyAverage": monthly_averages[user],
-            "monthlyRank": monthly_ranks.get(user),
+            "averageSteps": monthly_averages[user],
+            "rank": monthly_ranks.get(user),
         }
         for user in registered_users
     }
@@ -208,9 +201,9 @@ def calculate_weekly_stats(
     daily_steps_by_user: dict[str, dict[str, int]],
     end_date: dt.date,
     registered_users: set[str],
-) -> dict[dt.date, dict[str, WeeklyStats]]:
+) -> dict[dt.date, dict[str, PeriodStats]]:
     """Calculate weekly average steps and ranks for registered users."""
-    weekly_stats: dict[dt.date, dict[str, WeeklyStats]] = {}
+    weekly_stats: dict[dt.date, dict[str, PeriodStats]] = {}
 
     week_start = MIN_DATE
     while week_start <= end_date:
@@ -233,8 +226,8 @@ def calculate_weekly_stats(
         weekly_ranks = rank_users(weekly_averages)
         weekly_stats[week_start] = {
             user: {
-                "weeklyAverage": weekly_averages[user],
-                "weeklyRank": weekly_ranks.get(user),
+                "averageSteps": weekly_averages[user],
+                "rank": weekly_ranks.get(user),
             }
             for user in registered_users
         }
@@ -352,8 +345,8 @@ def rank_users(user_scores: Mapping[str, int | float]) -> dict[str, int]:
 
 def write_leaderboard_json_file(
     daily_stats: dict[dt.date, dict[str, DailyStats]],
-    weekly_stats: dict[dt.date, dict[str, WeeklyStats]],
-    monthly_stats: dict[str, MonthlyStats],
+    weekly_stats: dict[dt.date, dict[str, PeriodStats]],
+    monthly_stats: dict[str, PeriodStats],
     streaks_5k_stats: dict[str, StreaksStats],
     last_fetch: str,
 ) -> None:
@@ -384,14 +377,14 @@ def write_leaderboard_json_file(
             (
                 (user, stats)
                 for user, stats in week_stats.items()
-                if stats["weeklyRank"] is not None and stats["weeklyRank"] <= 10
+                if stats["rank"] is not None and stats["rank"] <= 10
             ),
-            key=lambda x: (x[1]["weeklyRank"], x[0].casefold()),
+            key=lambda x: (x[1]["rank"], x[0].casefold()),
         )
         weekly_leaderboard[week_start.isoformat()] = [
             {
-                "rank": stats["weeklyRank"],
-                "averageSteps": stats["weeklyAverage"],
+                "rank": stats["rank"],
+                "averageSteps": stats["averageSteps"],
                 "username": user,
             }
             for user, stats in sorted_week_stats
@@ -401,14 +394,14 @@ def write_leaderboard_json_file(
         (
             (user, stats)
             for user, stats in monthly_stats.items()
-            if stats["monthlyRank"] is not None and stats["monthlyRank"] <= 20
+            if stats["rank"] is not None and stats["rank"] <= 20
         ),
-        key=lambda x: (x[1]["monthlyRank"], x[0].casefold()),
+        key=lambda x: (x[1]["rank"], x[0].casefold()),
     )
     monthly_leaderboard = [
         {
-            "rank": stats["monthlyRank"],
-            "averageSteps": stats["monthlyAverage"],
+            "rank": stats["rank"],
+            "averageSteps": stats["averageSteps"],
             "username": user,
         }
         for user, stats in sorted_monthly_stats
@@ -460,11 +453,11 @@ def write_user_json_files(
         daily_stats: DailyStats = inputs.daily_stats[last_fetch_date].get(
             username, {"todaySteps": 0, "dailyRank": None}
         )
-        weekly_stats: WeeklyStats = inputs.weekly_stats[current_week_start].get(
-            username, {"weeklyAverage": 0.0, "weeklyRank": None}
+        weekly_stats: PeriodStats = inputs.weekly_stats[current_week_start].get(
+            username, {"averageSteps": 0.0, "rank": None}
         )
-        monthly_stats: MonthlyStats = inputs.monthly_stats.get(
-            username, {"monthlyAverage": 0.0, "monthlyRank": None}
+        monthly_stats: PeriodStats = inputs.monthly_stats.get(
+            username, {"averageSteps": 0.0, "rank": None}
         )
         streaks_5k_stats: StreaksStats = inputs.streaks_5k_stats.get(
             username,
@@ -488,10 +481,10 @@ def write_user_json_files(
             ),
             "stats": {
                 "dailyRank": daily_stats["dailyRank"],
-                "weeklyAverage": weekly_stats["weeklyAverage"],
-                "weeklyRank": weekly_stats["weeklyRank"],
-                "monthlyAverage": monthly_stats["monthlyAverage"],
-                "monthlyRank": monthly_stats["monthlyRank"],
+                "weeklyAverage": weekly_stats["averageSteps"],
+                "weeklyRank": weekly_stats["rank"],
+                "monthlyAverage": monthly_stats["averageSteps"],
+                "monthlyRank": monthly_stats["rank"],
                 "longest5kStreak": streaks_5k_stats["longestStreak"],
                 "longest5kStreakRank": streaks_5k_stats["longestStreakRank"],
                 "longest5kStreakStart": format_date(
