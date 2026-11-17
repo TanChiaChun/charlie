@@ -19,12 +19,12 @@ def test_calculate_5k_streaks_stats() -> None:
         build_user_data.MIN_DATE + dt.timedelta(days=2),
         {"user1", "user2", "user3"},
     )
-    assert stats["user1"]["longest5kStreak"] == 2
-    assert stats["user1"]["longest5kStreakRank"] == 1
-    assert stats["user2"]["longest5kStreak"] == 2
-    assert stats["user2"]["longest5kStreakRank"] == 1
-    assert stats["user3"]["longest5kStreak"] == 0
-    assert stats["user3"]["longest5kStreakRank"] is None
+    assert stats["user1"]["longestStreak"] == 2
+    assert stats["user1"]["longestStreakRank"] == 1
+    assert stats["user2"]["longestStreak"] == 2
+    assert stats["user2"]["longestStreakRank"] == 1
+    assert stats["user3"]["longestStreak"] == 0
+    assert stats["user3"]["longestStreakRank"] is None
 
 
 def test_calculate_daily_stats() -> None:
@@ -42,16 +42,16 @@ def test_calculate_daily_stats() -> None:
         {"user1", "user2", "user3", "user4"},
     ) == {
         dt.date(2026, 10, 28): {
-            "user1": {"todaySteps": 8000, "dailyRank": 2},
-            "user2": {"todaySteps": 10000, "dailyRank": 1},
-            "user3": {"todaySteps": 0, "dailyRank": None},
-            "user4": {"todaySteps": 0, "dailyRank": None},
+            "user1": {"steps": 8000, "rank": 2},
+            "user2": {"steps": 10000, "rank": 1},
+            "user3": {"steps": 0, "rank": None},
+            "user4": {"steps": 0, "rank": None},
         },
         dt.date(2026, 10, 27): {
-            "user1": {"todaySteps": 0, "dailyRank": None},
-            "user2": {"todaySteps": 0, "dailyRank": None},
-            "user3": {"todaySteps": 0, "dailyRank": None},
-            "user4": {"todaySteps": 12000, "dailyRank": 1},
+            "user1": {"steps": 0, "rank": None},
+            "user2": {"steps": 0, "rank": None},
+            "user3": {"steps": 0, "rank": None},
+            "user4": {"steps": 12000, "rank": 1},
         },
     }
 
@@ -64,8 +64,8 @@ def test_calculate_monthly_stats() -> None:
     assert build_user_data.calculate_monthly_stats(
         daily_steps_by_user, dt.date(2026, 11, 2), {"user1", "user2"}
     ) == {
-        "user1": {"monthlyAverage": 6663.5, "monthlyRank": 2},
-        "user2": {"monthlyAverage": 13154.5, "monthlyRank": 1},
+        "user1": {"averageSteps": 6663.5, "rank": 2},
+        "user2": {"averageSteps": 13154.5, "rank": 1},
     }
 
 
@@ -82,12 +82,12 @@ def test_calculate_user_5k_streaks() -> None:
     }
 
     assert build_user_data.calculate_user_5k_streaks(daily_steps, today) == {
-        "longest5kStreak": 3,
-        "longest5kStreakStart": start_date,
-        "longest5kStreakEnd": start_date + dt.timedelta(days=2),
-        "current5kStreak": 2,
-        "current5kStreakStart": start_date + dt.timedelta(days=4),
-        "current5kStreakEnd": today,
+        "longestStreak": 3,
+        "longestStreakStart": start_date,
+        "longestStreakEnd": start_date + dt.timedelta(days=2),
+        "currentStreak": 2,
+        "currentStreakStart": start_date + dt.timedelta(days=4),
+        "currentStreakEnd": today,
     }
 
 
@@ -104,19 +104,19 @@ def test_calculate_weekly_stats() -> None:
         {"user1", "user2", "user3"},
     ) == {
         dt.date(2026, 10, 12): {
-            "user1": {"weeklyAverage": 0.0, "weeklyRank": None},
-            "user2": {"weeklyAverage": 0.0, "weeklyRank": None},
-            "user3": {"weeklyAverage": 0.0, "weeklyRank": None},
+            "user1": {"averageSteps": 0.0, "rank": None},
+            "user2": {"averageSteps": 0.0, "rank": None},
+            "user3": {"averageSteps": 0.0, "rank": None},
         },
         dt.date(2026, 10, 19): {
-            "user1": {"weeklyAverage": 500.0, "weeklyRank": 2},
-            "user2": {"weeklyAverage": 300.0, "weeklyRank": 3},
-            "user3": {"weeklyAverage": 800.0, "weeklyRank": 1},
+            "user1": {"averageSteps": 500.0, "rank": 2},
+            "user2": {"averageSteps": 300.0, "rank": 3},
+            "user3": {"averageSteps": 800.0, "rank": 1},
         },
         dt.date(2026, 10, 26): {
-            "user1": {"weeklyAverage": 9935.0, "weeklyRank": 2},
-            "user2": {"weeklyAverage": 10140.0, "weeklyRank": 1},
-            "user3": {"weeklyAverage": 0.0, "weeklyRank": None},
+            "user1": {"averageSteps": 9935.0, "rank": 2},
+            "user2": {"averageSteps": 10140.0, "rank": 1},
+            "user3": {"averageSteps": 0.0, "rank": None},
         },
     }
 
@@ -260,84 +260,172 @@ def test_write_leaderboard_json_file(
 ) -> None:
     monkeypatch.setattr(build_user_data, "PUBLIC_DIR", tmp_path)
 
-    daily_stats: dict[dt.date, dict[str, dict[str, int | None]]] = {
+    daily_stats: dict[dt.date, dict[str, build_user_data.DailyStats]] = {
         dt.date(2026, 11, 6): {},
         dt.date(2026, 11, 5): {
-            "user1": {"todaySteps": 10339, "dailyRank": 1},
-            "user2": {"todaySteps": 6215, "dailyRank": 3},
-            "User3": {"todaySteps": 10339, "dailyRank": 1},
-            "user9": {"todaySteps": 5159, "dailyRank": 5},
-            "user5": {"todaySteps": 2663, "dailyRank": 9},
-            "user11": {"todaySteps": 2351, "dailyRank": 11},
-            "user8": {"todaySteps": 3318, "dailyRank": 8},
-            "user12": {"todaySteps": 0, "dailyRank": None},
-            "user10": {"todaySteps": 5060, "dailyRank": 6},
-            "user7": {"todaySteps": 3592, "dailyRank": 7},
-            "user6": {"todaySteps": 2515, "dailyRank": 10},
-            "user4": {"todaySteps": 5818, "dailyRank": 4},
+            "user1": {"steps": 10339, "rank": 1},
+            "user2": {"steps": 6215, "rank": 3},
+            "User3": {"steps": 10339, "rank": 1},
+            "user9": {"steps": 5159, "rank": 5},
+            "user5": {"steps": 2663, "rank": 9},
+            "user11": {"steps": 2351, "rank": 11},
+            "user8": {"steps": 3318, "rank": 8},
+            "user12": {"steps": 0, "rank": None},
+            "user10": {"steps": 5060, "rank": 6},
+            "user7": {"steps": 3592, "rank": 7},
+            "user6": {"steps": 2515, "rank": 10},
+            "user4": {"steps": 5818, "rank": 4},
         },
     }
-    weekly_stats: dict[dt.date, dict[str, dict[str, int | float | None]]] = {
+    weekly_stats: dict[dt.date, dict[str, build_user_data.PeriodStats]] = {
         dt.date(2026, 10, 26): {
-            "user1": {"weeklyAverage": 16367.0, "weeklyRank": 2},
-            "user2": {"weeklyAverage": 15190.0, "weeklyRank": 5},
-            "user3": {"weeklyAverage": 13276.0, "weeklyRank": 10},
-            "user4": {"weeklyAverage": 16097.0, "weeklyRank": 3},
-            "user5": {"weeklyAverage": 14618.0, "weeklyRank": 6},
-            "user6": {"weeklyAverage": 13432.0, "weeklyRank": 9},
-            "user7": {"weeklyAverage": 18759.0, "weeklyRank": 1},
-            "user8": {"weeklyAverage": 14389.0, "weeklyRank": 7},
-            "user9": {"weeklyAverage": 13468.0, "weeklyRank": 8},
-            "user10": {"weeklyAverage": 13000.0, "weeklyRank": 11},
-            "user11": {"weeklyAverage": 15739.0, "weeklyRank": 4},
-            "user12": {"weeklyAverage": 0.0, "weeklyRank": None},
+            "user1": {"averageSteps": 16367.0, "rank": 2},
+            "user2": {"averageSteps": 15190.0, "rank": 5},
+            "user3": {"averageSteps": 13276.0, "rank": 10},
+            "user4": {"averageSteps": 16097.0, "rank": 3},
+            "user5": {"averageSteps": 14618.0, "rank": 6},
+            "user6": {"averageSteps": 13432.0, "rank": 9},
+            "user7": {"averageSteps": 18759.0, "rank": 1},
+            "user8": {"averageSteps": 14389.0, "rank": 7},
+            "user9": {"averageSteps": 13468.0, "rank": 8},
+            "user10": {"averageSteps": 13000.0, "rank": 11},
+            "user11": {"averageSteps": 15739.0, "rank": 4},
+            "user12": {"averageSteps": 0.0, "rank": None},
         },
         dt.date(2026, 11, 2): {
-            "user8": {"weeklyRank": 4, "weeklyAverage": 17086.0},
-            "user1": {"weeklyRank": 9, "weeklyAverage": 13464.0},
-            "user2": {"weeklyRank": 3, "weeklyAverage": 17890.0},
-            "user10": {"weeklyRank": 2, "weeklyAverage": 23330.0},
-            "user5": {"weeklyRank": 6, "weeklyAverage": 16294.0},
-            "user3": {"weeklyRank": 8, "weeklyAverage": 14840.0},
-            "user7": {"weeklyRank": 1, "weeklyAverage": 34088.0},
-            "user4": {"weeklyRank": 5, "weeklyAverage": 16795.0},
-            "user6": {"weeklyRank": 7, "weeklyAverage": 15436.0},
+            "user8": {"rank": 4, "averageSteps": 17086.0},
+            "user1": {"rank": 9, "averageSteps": 13464.0},
+            "user2": {"rank": 3, "averageSteps": 17890.0},
+            "user10": {"rank": 2, "averageSteps": 23330.0},
+            "user5": {"rank": 6, "averageSteps": 16294.0},
+            "user3": {"rank": 8, "averageSteps": 14840.0},
+            "user7": {"rank": 1, "averageSteps": 34088.0},
+            "user4": {"rank": 5, "averageSteps": 16795.0},
+            "user6": {"rank": 7, "averageSteps": 15436.0},
         },
     }
-    monthly_stats: dict[str, dict[str, int | float | None]] = {
-        "User1": {"monthlyAverage": 19266.8, "monthlyRank": 1},
-        "User2": {"monthlyAverage": 16451.5, "monthlyRank": 2},
-        "User3": {"monthlyAverage": 15750.2, "monthlyRank": 3},
-        "User4": {"monthlyAverage": 14156.7, "monthlyRank": 4},
-        "User5": {"monthlyAverage": 13564.8, "monthlyRank": 5},
-        "User6": {"monthlyAverage": 13433.7, "monthlyRank": 6},
-        "User7": {"monthlyAverage": 13388.6, "monthlyRank": 7},
-        "User8": {"monthlyAverage": 13343.6, "monthlyRank": 8},
-        "User9": {"monthlyAverage": 13266.0, "monthlyRank": 9},
-        "User10": {"monthlyAverage": 13060.4, "monthlyRank": 10},
-        "User11": {"monthlyAverage": 12865.4, "monthlyRank": 11},
-        "User12": {"monthlyAverage": 11979.9, "monthlyRank": 12},
-        "User13": {"monthlyAverage": 11744.8, "monthlyRank": 13},
-        "User14": {"monthlyAverage": 11732.7, "monthlyRank": 14},
-        "User15": {"monthlyAverage": 11627.8, "monthlyRank": 15},
-        "User16": {"monthlyAverage": 11259.7, "monthlyRank": 16},
-        "User17": {"monthlyAverage": 10943.2, "monthlyRank": 17},
-        "User18": {"monthlyAverage": 10572.9, "monthlyRank": 18},
-        "User19": {"monthlyAverage": 10143.2, "monthlyRank": 19},
-        "User20": {"monthlyAverage": 10113.5, "monthlyRank": 20},
+    monthly_stats: dict[str, build_user_data.PeriodStats] = {
+        "User1": {"averageSteps": 19266.8, "rank": 1},
+        "User2": {"averageSteps": 16451.5, "rank": 2},
+        "User3": {"averageSteps": 15750.2, "rank": 3},
+        "User4": {"averageSteps": 14156.7, "rank": 4},
+        "User5": {"averageSteps": 13564.8, "rank": 5},
+        "User6": {"averageSteps": 13433.7, "rank": 6},
+        "User7": {"averageSteps": 13388.6, "rank": 7},
+        "User8": {"averageSteps": 13343.6, "rank": 8},
+        "User9": {"averageSteps": 13266.0, "rank": 9},
+        "User10": {"averageSteps": 13060.4, "rank": 10},
+        "User11": {"averageSteps": 12865.4, "rank": 11},
+        "User12": {"averageSteps": 11979.9, "rank": 12},
+        "User13": {"averageSteps": 11744.8, "rank": 13},
+        "User14": {"averageSteps": 11732.7, "rank": 14},
+        "User15": {"averageSteps": 11627.8, "rank": 15},
+        "User16": {"averageSteps": 11259.7, "rank": 16},
+        "User17": {"averageSteps": 10943.2, "rank": 17},
+        "User18": {"averageSteps": 10572.9, "rank": 18},
+        "User19": {"averageSteps": 10143.2, "rank": 19},
+        "User20": {"averageSteps": 10113.5, "rank": 20},
     }
-    streaks_5k_stats: dict[str, dict[str, int | dt.date | None]] = {
-        "User1": {"longest5kStreak": 17, "longest5kStreakRank": 9},
-        "User2": {"longest5kStreak": 23, "longest5kStreakRank": 5},
-        "User3": {"longest5kStreak": 29, "longest5kStreakRank": 1},
-        "User4": {"longest5kStreak": 22, "longest5kStreakRank": 6},
-        "User5": {"longest5kStreak": 20, "longest5kStreakRank": 7},
-        "User6": {"longest5kStreak": 29, "longest5kStreakRank": 1},
-        "User7": {"longest5kStreak": 24, "longest5kStreakRank": 4},
-        "User8": {"longest5kStreak": 18, "longest5kStreakRank": 8},
-        "User9": {"longest5kStreak": 17, "longest5kStreakRank": 9},
-        "User10": {"longest5kStreak": 29, "longest5kStreakRank": 1},
-        "User11": {"longest5kStreak": 17, "longest5kStreakRank": 9},
+    streaks_5k_stats: dict[str, build_user_data.StreaksStats] = {
+        "User1": {
+            "longestStreak": 17,
+            "longestStreakStart": None,
+            "longestStreakEnd": None,
+            "currentStreak": 0,
+            "currentStreakStart": None,
+            "currentStreakEnd": None,
+            "longestStreakRank": 9,
+        },
+        "User2": {
+            "longestStreak": 23,
+            "longestStreakStart": None,
+            "longestStreakEnd": None,
+            "currentStreak": 0,
+            "currentStreakStart": None,
+            "currentStreakEnd": None,
+            "longestStreakRank": 5,
+        },
+        "User3": {
+            "longestStreak": 29,
+            "longestStreakStart": None,
+            "longestStreakEnd": None,
+            "currentStreak": 0,
+            "currentStreakStart": None,
+            "currentStreakEnd": None,
+            "longestStreakRank": 1,
+        },
+        "User4": {
+            "longestStreak": 22,
+            "longestStreakStart": None,
+            "longestStreakEnd": None,
+            "currentStreak": 0,
+            "currentStreakStart": None,
+            "currentStreakEnd": None,
+            "longestStreakRank": 6,
+        },
+        "User5": {
+            "longestStreak": 20,
+            "longestStreakStart": None,
+            "longestStreakEnd": None,
+            "currentStreak": 0,
+            "currentStreakStart": None,
+            "currentStreakEnd": None,
+            "longestStreakRank": 7,
+        },
+        "User6": {
+            "longestStreak": 29,
+            "longestStreakStart": None,
+            "longestStreakEnd": None,
+            "currentStreak": 0,
+            "currentStreakStart": None,
+            "currentStreakEnd": None,
+            "longestStreakRank": 1,
+        },
+        "User7": {
+            "longestStreak": 24,
+            "longestStreakStart": None,
+            "longestStreakEnd": None,
+            "currentStreak": 0,
+            "currentStreakStart": None,
+            "currentStreakEnd": None,
+            "longestStreakRank": 4,
+        },
+        "User8": {
+            "longestStreak": 18,
+            "longestStreakStart": None,
+            "longestStreakEnd": None,
+            "currentStreak": 0,
+            "currentStreakStart": None,
+            "currentStreakEnd": None,
+            "longestStreakRank": 8,
+        },
+        "User9": {
+            "longestStreak": 17,
+            "longestStreakStart": None,
+            "longestStreakEnd": None,
+            "currentStreak": 0,
+            "currentStreakStart": None,
+            "currentStreakEnd": None,
+            "longestStreakRank": 9,
+        },
+        "User10": {
+            "longestStreak": 29,
+            "longestStreakStart": None,
+            "longestStreakEnd": None,
+            "currentStreak": 0,
+            "currentStreakStart": None,
+            "currentStreakEnd": None,
+            "longestStreakRank": 1,
+        },
+        "User11": {
+            "longestStreak": 17,
+            "longestStreakStart": None,
+            "longestStreakEnd": None,
+            "currentStreak": 0,
+            "currentStreakStart": None,
+            "currentStreakEnd": None,
+            "longestStreakRank": 9,
+        },
     }
     build_user_data.write_leaderboard_json_file(
         daily_stats,
@@ -441,29 +529,25 @@ def test_write_user_json_files(
             "10/29": 11649,
         }
     }
-    daily_stats: dict[dt.date, dict[str, dict[str, int | None]]] = {
-        dt.date(2026, 11, 8): {"user1": {"todaySteps": 14925, "dailyRank": 1}}
+    daily_stats: dict[dt.date, dict[str, build_user_data.DailyStats]] = {
+        dt.date(2026, 11, 8): {"user1": {"steps": 14925, "rank": 1}}
     }
-    weekly_stats: dict[dt.date, dict[str, dict[str, int | float | None]]] = {
-        dt.date(2026, 11, 2): {
-            "user1": {"weeklyAverage": 13432.3, "weeklyRank": 9}
-        },
-        dt.date(2026, 11, 9): {
-            "user1": {"weeklyAverage": 9469.0, "weeklyRank": 10}
-        },
+    weekly_stats: dict[dt.date, dict[str, build_user_data.PeriodStats]] = {
+        dt.date(2026, 11, 2): {"user1": {"averageSteps": 13432.3, "rank": 9}},
+        dt.date(2026, 11, 9): {"user1": {"averageSteps": 9469.0, "rank": 10}},
     }
-    monthly_stats: dict[str, dict[str, int | float | None]] = {
-        "user1": {"monthlyAverage": 13085.2, "monthlyRank": 1},
+    monthly_stats: dict[str, build_user_data.PeriodStats] = {
+        "user1": {"averageSteps": 13085.2, "rank": 1},
     }
-    streaks_5k_stats: dict[str, dict[str, int | dt.date | None]] = {
+    streaks_5k_stats: dict[str, build_user_data.StreaksStats] = {
         "user1": {
-            "longest5kStreak": 3,
-            "longest5kStreakRank": 1,
-            "longest5kStreakStart": dt.date(2026, 11, 3),
-            "longest5kStreakEnd": dt.date(2026, 11, 5),
-            "current5kStreak": 2,
-            "current5kStreakStart": dt.date(2026, 11, 7),
-            "current5kStreakEnd": dt.date(2026, 11, 8),
+            "longestStreak": 3,
+            "longestStreakRank": 1,
+            "longestStreakStart": dt.date(2026, 11, 3),
+            "longestStreakEnd": dt.date(2026, 11, 5),
+            "currentStreak": 2,
+            "currentStreakStart": dt.date(2026, 11, 7),
+            "currentStreakEnd": dt.date(2026, 11, 8),
         }
     }
     user_data_inputs = build_user_data.UserDataInputs(
