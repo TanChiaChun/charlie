@@ -3,15 +3,16 @@ import {
   defineConfigWithVueTs,
   vueTsConfigs,
 } from '@vue/eslint-config-typescript'
-import { globalIgnores } from 'eslint/config'
 import skipFormatting from 'eslint-config-prettier/flat'
+import perfectionist from 'eslint-plugin-perfectionist'
 import pluginPlaywright from 'eslint-plugin-playwright'
 import pluginVue from 'eslint-plugin-vue'
+import { globalIgnores } from 'eslint/config'
 
 export default defineConfigWithVueTs(
   {
-    name: 'app/files-to-lint',
     files: ['**/*.{vue,ts,mts,tsx}'],
+    name: 'app/files-to-lint',
   },
 
   globalIgnores([
@@ -28,10 +29,11 @@ export default defineConfigWithVueTs(
 
   {
     rules: {
-      'no-duplicate-imports': ['error', { allowSeparateTypeImports: true }],
       '@typescript-eslint/explicit-function-return-type': 'error',
+      'no-duplicate-imports': ['error', { allowSeparateTypeImports: true }],
     },
   },
+  perfectionist.configs['recommended-alphabetical'],
 
   {
     ...pluginPlaywright.configs['flat/recommended'],

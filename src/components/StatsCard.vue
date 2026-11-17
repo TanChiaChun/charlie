@@ -2,11 +2,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 defineProps<{
-  title: string
-  value: number
-  unit: string
-  rank?: number | null
+  rank?: null | number
   subtitle?: string
+  title: string
+  unit: string
+  value: number
 }>()
 </script>
 

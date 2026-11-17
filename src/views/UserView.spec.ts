@@ -1,8 +1,9 @@
 import type { VueWrapper } from '@vue/test-utils'
+import type { Router } from 'vue-router'
+
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { nextTick } from 'vue'
-import type { Router } from 'vue-router'
 import { createRouter, createWebHashHistory } from 'vue-router'
 
 import StatsCard from '@/components/StatsCard.vue'
@@ -16,8 +17,8 @@ describe('UserView', () => {
     router = createRouter({
       history: createWebHashHistory(),
       routes: [
-        { path: '/leaderboard', component: { template: '<div></div>' } },
-        { path: '/users/:id', component: UserView },
+        { component: { template: '<div></div>' }, path: '/leaderboard' },
+        { component: UserView, path: '/users/:id' },
       ],
     })
     await router.push('/users/izG78Bhy')
@@ -35,28 +36,28 @@ describe('UserView', () => {
 
   test('renders user details and statistics correctly', async () => {
     const mockUserData = {
-      username: 'User1',
-      team: '1',
+      dailySteps: { '10/31': 8326, '11/01': 13668 },
       lastFetch: '2026-11-01T23:05:02',
-      dailySteps: { '11/01': 13668, '10/31': 8326 },
       stats: {
+        current5kStreak: 2,
+        current5kStreakEnd: '2026-11-01',
+        current5kStreakStart: '2026-10-31',
         dailyRank: 2,
-        weeklyAverage: 10997.0,
-        weeklyRank: 11,
-        monthlyAverage: 13668.0,
-        monthlyRank: 5,
         longest5kStreak: 18,
+        longest5kStreakEnd: '2026-10-29',
         longest5kStreakRank: 3,
         longest5kStreakStart: '2026-10-12',
-        longest5kStreakEnd: '2026-10-29',
-        current5kStreak: 2,
-        current5kStreakStart: '2026-10-31',
-        current5kStreakEnd: '2026-11-01',
+        monthlyAverage: 13668.0,
+        monthlyRank: 5,
+        weeklyAverage: 10997.0,
+        weeklyRank: 11,
       },
+      team: '1',
+      username: 'User1',
     }
     const fetchMock = vi
       .fn()
-      .mockResolvedValue({ ok: true, json: async () => mockUserData })
+      .mockResolvedValue({ json: async () => mockUserData, ok: true })
     vi.stubGlobal('fetch', fetchMock)
 
     const wrapper = mountUserView()
@@ -106,28 +107,28 @@ describe('UserView', () => {
 
   test('renders zero values when user has no activity', async () => {
     const mockUserData = {
-      username: 'User2',
-      team: '2',
-      lastFetch: '2026-11-03T23:05:02',
       dailySteps: { '10/31': 0 },
+      lastFetch: '2026-11-03T23:05:02',
       stats: {
+        current5kStreak: 0,
+        current5kStreakEnd: null,
+        current5kStreakStart: null,
         dailyRank: null,
-        weeklyAverage: 0.0,
-        weeklyRank: null,
-        monthlyAverage: 0.0,
-        monthlyRank: null,
         longest5kStreak: 0,
+        longest5kStreakEnd: null,
         longest5kStreakRank: null,
         longest5kStreakStart: null,
-        longest5kStreakEnd: null,
-        current5kStreak: 0,
-        current5kStreakStart: null,
-        current5kStreakEnd: null,
+        monthlyAverage: 0.0,
+        monthlyRank: null,
+        weeklyAverage: 0.0,
+        weeklyRank: null,
       },
+      team: '2',
+      username: 'User2',
     }
     const fetchMock = vi
       .fn()
-      .mockResolvedValue({ ok: true, json: async () => mockUserData })
+      .mockResolvedValue({ json: async () => mockUserData, ok: true })
     vi.stubGlobal('fetch', fetchMock)
 
     const wrapper = mountUserView()
@@ -165,28 +166,28 @@ describe('UserView', () => {
 
   test('displays the completed November date range after November', async () => {
     const mockUserData = {
-      username: 'User3',
-      team: '3',
-      lastFetch: '2026-12-01T23:05:02',
       dailySteps: { '10/31': 0 },
+      lastFetch: '2026-12-01T23:05:02',
       stats: {
+        current5kStreak: 0,
+        current5kStreakEnd: null,
+        current5kStreakStart: null,
         dailyRank: null,
-        weeklyAverage: 0.0,
-        weeklyRank: null,
-        monthlyAverage: 0.0,
-        monthlyRank: null,
         longest5kStreak: 0,
+        longest5kStreakEnd: null,
         longest5kStreakRank: null,
         longest5kStreakStart: null,
-        longest5kStreakEnd: null,
-        current5kStreak: 0,
-        current5kStreakStart: null,
-        current5kStreakEnd: null,
+        monthlyAverage: 0.0,
+        monthlyRank: null,
+        weeklyAverage: 0.0,
+        weeklyRank: null,
       },
+      team: '3',
+      username: 'User3',
     }
     const fetchMock = vi
       .fn()
-      .mockResolvedValue({ ok: true, json: async () => mockUserData })
+      .mockResolvedValue({ json: async () => mockUserData, ok: true })
     vi.stubGlobal('fetch', fetchMock)
 
     const wrapper = mountUserView()

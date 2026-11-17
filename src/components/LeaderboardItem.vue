@@ -3,7 +3,7 @@ import { computed } from 'vue'
 
 import type { LeaderboardRecord } from '@/types/leaderboard'
 
-const props = defineProps<{ record: LeaderboardRecord; maxValue: number }>()
+const props = defineProps<{ maxValue: number; record: LeaderboardRecord }>()
 
 const progress = computed(() => (props.record.value / props.maxValue) * 100)
 </script>

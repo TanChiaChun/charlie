@@ -1,24 +1,24 @@
 import { expect, test } from '@playwright/test'
 
 const userData = {
-  username: 'User1',
-  team: '1',
+  dailySteps: { '10/31': 8326, '11/01': 13668 },
   lastFetch: '2026-11-01T23:05:02',
-  dailySteps: { '11/01': 13668, '10/31': 8326 },
   stats: {
+    current5kStreak: 2,
+    current5kStreakEnd: '2026-11-01',
+    current5kStreakStart: '2026-10-31',
     dailyRank: 2,
-    weeklyAverage: 10997.0,
-    weeklyRank: 11,
-    monthlyAverage: 13668.0,
-    monthlyRank: 15,
     longest5kStreak: 18,
+    longest5kStreakEnd: '2026-10-29',
     longest5kStreakRank: 3,
     longest5kStreakStart: '2026-10-12',
-    longest5kStreakEnd: '2026-10-29',
-    current5kStreak: 2,
-    current5kStreakStart: '2026-10-31',
-    current5kStreakEnd: '2026-11-01',
+    monthlyAverage: 13668.0,
+    monthlyRank: 15,
+    weeklyAverage: 10997.0,
+    weeklyRank: 11,
   },
+  team: '1',
+  username: 'User1',
 }
 
 test('displays user view after data loads', async ({ page }) => {

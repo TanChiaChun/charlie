@@ -7,9 +7,9 @@ describe('PageHeader', () => {
   test('displays title, subtitle, and formatted last updated date', () => {
     const wrapper = mount(PageHeader, {
       props: {
-        title: 'Hello, User1',
-        subtitle: 'Team 1',
         lastUpdated: new Date(2026, 10, 8, 17, 15, 2),
+        subtitle: 'Team 1',
+        title: 'Hello, User1',
       },
     })
 
