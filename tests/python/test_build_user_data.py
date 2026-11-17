@@ -448,10 +448,12 @@ def test_write_leaderboard_json_file(
         },
     }
     build_user_data.write_leaderboard_json_file(
-        daily_stats,
-        weekly_stats,
-        monthly_stats,
-        streaks_5k_stats,
+        build_user_data.LeaderboardData(
+            daily_stats,
+            weekly_stats,
+            monthly_stats,
+            streaks_5k_stats,
+        ),
         "2026-11-06T07:05:02",
     )
 
