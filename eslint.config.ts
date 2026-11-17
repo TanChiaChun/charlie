@@ -19,6 +19,8 @@ export default defineConfigWithVueTs(
     '**/dist/**',
     '**/dist-ssr/**',
     '**/coverage/**',
+    '.venv/',
+    'git-hooks/',
     'src/components/ui/',
   ]),
 
