@@ -8,6 +8,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import cast
 
+DATA_DIR = Path("..", "charlie-data", "data")
+MIN_DATE = dt.date(2026, 10, 12)
+PUBLIC_DIR = Path("public")
+RAW_DATA_DIR = DATA_DIR / "raw"
+
 
 @dataclass
 class UserDataInputs:
@@ -20,12 +25,6 @@ class UserDataInputs:
     weekly_stats: dict[dt.date, dict[str, dict[str, int | float | None]]]
     monthly_stats: dict[str, dict[str, int | float | None]]
     streaks_5k_stats: dict[str, dict[str, int | dt.date | None]]
-
-
-DATA_DIR = Path("..", "charlie-data", "data")
-MIN_DATE = dt.date(2026, 10, 12)
-PUBLIC_DIR = Path("public")
-RAW_DATA_DIR = DATA_DIR / "raw"
 
 
 def calculate_5k_streaks_stats(
