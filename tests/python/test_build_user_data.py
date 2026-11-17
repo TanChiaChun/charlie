@@ -69,6 +69,26 @@ def test_calculate_monthly_stats() -> None:
     }
 
 
+def test_calculate_monthly_team_stats() -> None:
+    monthly_stats: dict[str, build_user_data.PeriodStats] = {
+        "user1": {"averageSteps": 10000.0, "rank": 1},
+        "user2": {"averageSteps": 8000.0, "rank": 2},
+        "user3": {"averageSteps": 6000.0, "rank": 3},
+    }
+    user_teams = {
+        "user1": "team1",
+        "user2": "team1",
+        "user3": "team2",
+    }
+
+    assert build_user_data.calculate_monthly_team_stats(
+        monthly_stats, user_teams
+    ) == {
+        "team1": {"averageSteps": 9000.0, "rank": 1},
+        "team2": {"averageSteps": 6000.0, "rank": 2},
+    }
+
+
 def test_calculate_user_5k_streaks() -> None:
     start_date = build_user_data.MIN_DATE
     today = start_date + dt.timedelta(days=5)

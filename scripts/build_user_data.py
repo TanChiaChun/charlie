@@ -3,6 +3,7 @@
 import csv
 import datetime as dt
 import json
+from collections import defaultdict
 from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
@@ -135,6 +136,29 @@ def calculate_monthly_stats(
             "rank": monthly_ranks.get(user),
         }
         for user in registered_users
+    }
+
+
+def calculate_monthly_team_stats(
+    monthly_stats: dict[str, PeriodStats], user_teams: dict[str, str]
+) -> dict[str, PeriodStats]:
+    """Calculate monthly average steps and ranks for each team."""
+    team_total_steps: defaultdict[str, float] = defaultdict(float)
+    team_member_count: defaultdict[str, int] = defaultdict(int)
+    for user, stats in monthly_stats.items():
+        team = user_teams[user]
+        team_total_steps[team] += stats["averageSteps"]
+        team_member_count[team] += 1
+
+    team_averages = {
+        team: total / team_member_count[team]
+        for team, total in team_total_steps.items()
+    }
+    team_ranks = rank_by_scores(team_averages)
+
+    return {
+        team: {"averageSteps": average, "rank": team_ranks.get(team)}
+        for team, average in team_averages.items()
     }
 
 
