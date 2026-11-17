@@ -570,7 +570,7 @@ def test_write_user_json_files(
             "currentStreakEnd": dt.date(2026, 11, 8),
         }
     }
-    user_data_inputs = build_user_data.UserDataInputs(
+    user_data = build_user_data.UserData(
         user_public_ids,
         user_teams,
         daily_steps_by_user,
@@ -580,7 +580,7 @@ def test_write_user_json_files(
         streaks_5k_stats,
     )
     build_user_data.write_user_json_files(
-        user_data_inputs,
+        user_data,
         "2026-11-08T23:05:02",
         dt.date(2026, 11, 8),
     )

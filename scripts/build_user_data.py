@@ -42,7 +42,7 @@ class StreaksStats(TypedDict):
 
 
 @dataclass
-class UserDataInputs:
+class UserData:
     """Data required to generate per-user JSON files."""
 
     user_public_ids: dict[str, str]
@@ -464,7 +464,7 @@ def write_leaderboard_json_file(
 
 
 def write_user_json_files(
-    inputs: UserDataInputs,
+    user_data: UserData,
     last_fetch: str,
     last_fetch_date: dt.date,
 ) -> None:
@@ -472,18 +472,18 @@ def write_user_json_files(
     output_dir = PUBLIC_DIR / "users"
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    current_week_start = max(inputs.weekly_stats)
-    for username, public_id in inputs.user_public_ids.items():
-        daily_stats: DailyStats = inputs.daily_stats[last_fetch_date].get(
+    current_week_start = max(user_data.weekly_stats)
+    for username, public_id in user_data.user_public_ids.items():
+        daily_stats: DailyStats = user_data.daily_stats[last_fetch_date].get(
             username, {"steps": 0, "rank": None}
         )
-        weekly_stats: PeriodStats = inputs.weekly_stats[current_week_start].get(
+        weekly_stats: PeriodStats = user_data.weekly_stats[
+            current_week_start
+        ].get(username, {"averageSteps": 0.0, "rank": None})
+        monthly_stats: PeriodStats = user_data.monthly_stats.get(
             username, {"averageSteps": 0.0, "rank": None}
         )
-        monthly_stats: PeriodStats = inputs.monthly_stats.get(
-            username, {"averageSteps": 0.0, "rank": None}
-        )
-        streaks_5k_stats: StreaksStats = inputs.streaks_5k_stats.get(
+        streaks_5k_stats: StreaksStats = user_data.streaks_5k_stats.get(
             username,
             {
                 "longestStreak": 0,
@@ -496,12 +496,12 @@ def write_user_json_files(
             },
         )
 
-        user_data = {
+        json_data = {
             "username": username,
-            "team": inputs.user_teams[username],
+            "team": user_data.user_teams[username],
             "lastFetch": last_fetch,
             "dailySteps": get_recent_daily_steps(
-                inputs.daily_steps_by_user.get(username, {}), last_fetch_date
+                user_data.daily_steps_by_user.get(username, {}), last_fetch_date
             ),
             "stats": {
                 "dailyRank": daily_stats["rank"],
@@ -527,7 +527,7 @@ def write_user_json_files(
             },
         }
         (output_dir / f"{public_id}.json").write_text(
-            json.dumps(user_data, ensure_ascii=False, indent=2)
+            json.dumps(json_data, ensure_ascii=False, indent=2)
         )
 
 
@@ -560,7 +560,7 @@ def main() -> None:
     )
 
     write_user_json_files(
-        UserDataInputs(
+        UserData(
             user_public_ids,
             user_teams,
             daily_steps_by_user,
