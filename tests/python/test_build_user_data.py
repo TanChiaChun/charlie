@@ -19,12 +19,12 @@ def test_calculate_5k_streaks_stats() -> None:
         build_user_data.MIN_DATE + dt.timedelta(days=2),
         {"user1", "user2", "user3"},
     )
-    assert stats["user1"]["longest5kStreak"] == 2
-    assert stats["user1"]["longest5kStreakRank"] == 1
-    assert stats["user2"]["longest5kStreak"] == 2
-    assert stats["user2"]["longest5kStreakRank"] == 1
-    assert stats["user3"]["longest5kStreak"] == 0
-    assert stats["user3"]["longest5kStreakRank"] is None
+    assert stats["user1"]["longestStreak"] == 2
+    assert stats["user1"]["longestStreakRank"] == 1
+    assert stats["user2"]["longestStreak"] == 2
+    assert stats["user2"]["longestStreakRank"] == 1
+    assert stats["user3"]["longestStreak"] == 0
+    assert stats["user3"]["longestStreakRank"] is None
 
 
 def test_calculate_daily_stats() -> None:
@@ -82,12 +82,12 @@ def test_calculate_user_5k_streaks() -> None:
     }
 
     assert build_user_data.calculate_user_5k_streaks(daily_steps, today) == {
-        "longest5kStreak": 3,
-        "longest5kStreakStart": start_date,
-        "longest5kStreakEnd": start_date + dt.timedelta(days=2),
-        "current5kStreak": 2,
-        "current5kStreakStart": start_date + dt.timedelta(days=4),
-        "current5kStreakEnd": today,
+        "longestStreak": 3,
+        "longestStreakStart": start_date,
+        "longestStreakEnd": start_date + dt.timedelta(days=2),
+        "currentStreak": 2,
+        "currentStreakStart": start_date + dt.timedelta(days=4),
+        "currentStreakEnd": today,
     }
 
 
@@ -326,105 +326,105 @@ def test_write_leaderboard_json_file(
         "User19": {"monthlyAverage": 10143.2, "monthlyRank": 19},
         "User20": {"monthlyAverage": 10113.5, "monthlyRank": 20},
     }
-    streaks_5k_stats: dict[str, build_user_data.Streaks5kStats] = {
+    streaks_5k_stats: dict[str, build_user_data.StreaksStats] = {
         "User1": {
-            "longest5kStreak": 17,
-            "longest5kStreakStart": None,
-            "longest5kStreakEnd": None,
-            "current5kStreak": 0,
-            "current5kStreakStart": None,
-            "current5kStreakEnd": None,
-            "longest5kStreakRank": 9,
+            "longestStreak": 17,
+            "longestStreakStart": None,
+            "longestStreakEnd": None,
+            "currentStreak": 0,
+            "currentStreakStart": None,
+            "currentStreakEnd": None,
+            "longestStreakRank": 9,
         },
         "User2": {
-            "longest5kStreak": 23,
-            "longest5kStreakStart": None,
-            "longest5kStreakEnd": None,
-            "current5kStreak": 0,
-            "current5kStreakStart": None,
-            "current5kStreakEnd": None,
-            "longest5kStreakRank": 5,
+            "longestStreak": 23,
+            "longestStreakStart": None,
+            "longestStreakEnd": None,
+            "currentStreak": 0,
+            "currentStreakStart": None,
+            "currentStreakEnd": None,
+            "longestStreakRank": 5,
         },
         "User3": {
-            "longest5kStreak": 29,
-            "longest5kStreakStart": None,
-            "longest5kStreakEnd": None,
-            "current5kStreak": 0,
-            "current5kStreakStart": None,
-            "current5kStreakEnd": None,
-            "longest5kStreakRank": 1,
+            "longestStreak": 29,
+            "longestStreakStart": None,
+            "longestStreakEnd": None,
+            "currentStreak": 0,
+            "currentStreakStart": None,
+            "currentStreakEnd": None,
+            "longestStreakRank": 1,
         },
         "User4": {
-            "longest5kStreak": 22,
-            "longest5kStreakStart": None,
-            "longest5kStreakEnd": None,
-            "current5kStreak": 0,
-            "current5kStreakStart": None,
-            "current5kStreakEnd": None,
-            "longest5kStreakRank": 6,
+            "longestStreak": 22,
+            "longestStreakStart": None,
+            "longestStreakEnd": None,
+            "currentStreak": 0,
+            "currentStreakStart": None,
+            "currentStreakEnd": None,
+            "longestStreakRank": 6,
         },
         "User5": {
-            "longest5kStreak": 20,
-            "longest5kStreakStart": None,
-            "longest5kStreakEnd": None,
-            "current5kStreak": 0,
-            "current5kStreakStart": None,
-            "current5kStreakEnd": None,
-            "longest5kStreakRank": 7,
+            "longestStreak": 20,
+            "longestStreakStart": None,
+            "longestStreakEnd": None,
+            "currentStreak": 0,
+            "currentStreakStart": None,
+            "currentStreakEnd": None,
+            "longestStreakRank": 7,
         },
         "User6": {
-            "longest5kStreak": 29,
-            "longest5kStreakStart": None,
-            "longest5kStreakEnd": None,
-            "current5kStreak": 0,
-            "current5kStreakStart": None,
-            "current5kStreakEnd": None,
-            "longest5kStreakRank": 1,
+            "longestStreak": 29,
+            "longestStreakStart": None,
+            "longestStreakEnd": None,
+            "currentStreak": 0,
+            "currentStreakStart": None,
+            "currentStreakEnd": None,
+            "longestStreakRank": 1,
         },
         "User7": {
-            "longest5kStreak": 24,
-            "longest5kStreakStart": None,
-            "longest5kStreakEnd": None,
-            "current5kStreak": 0,
-            "current5kStreakStart": None,
-            "current5kStreakEnd": None,
-            "longest5kStreakRank": 4,
+            "longestStreak": 24,
+            "longestStreakStart": None,
+            "longestStreakEnd": None,
+            "currentStreak": 0,
+            "currentStreakStart": None,
+            "currentStreakEnd": None,
+            "longestStreakRank": 4,
         },
         "User8": {
-            "longest5kStreak": 18,
-            "longest5kStreakStart": None,
-            "longest5kStreakEnd": None,
-            "current5kStreak": 0,
-            "current5kStreakStart": None,
-            "current5kStreakEnd": None,
-            "longest5kStreakRank": 8,
+            "longestStreak": 18,
+            "longestStreakStart": None,
+            "longestStreakEnd": None,
+            "currentStreak": 0,
+            "currentStreakStart": None,
+            "currentStreakEnd": None,
+            "longestStreakRank": 8,
         },
         "User9": {
-            "longest5kStreak": 17,
-            "longest5kStreakStart": None,
-            "longest5kStreakEnd": None,
-            "current5kStreak": 0,
-            "current5kStreakStart": None,
-            "current5kStreakEnd": None,
-            "longest5kStreakRank": 9,
+            "longestStreak": 17,
+            "longestStreakStart": None,
+            "longestStreakEnd": None,
+            "currentStreak": 0,
+            "currentStreakStart": None,
+            "currentStreakEnd": None,
+            "longestStreakRank": 9,
         },
         "User10": {
-            "longest5kStreak": 29,
-            "longest5kStreakStart": None,
-            "longest5kStreakEnd": None,
-            "current5kStreak": 0,
-            "current5kStreakStart": None,
-            "current5kStreakEnd": None,
-            "longest5kStreakRank": 1,
+            "longestStreak": 29,
+            "longestStreakStart": None,
+            "longestStreakEnd": None,
+            "currentStreak": 0,
+            "currentStreakStart": None,
+            "currentStreakEnd": None,
+            "longestStreakRank": 1,
         },
         "User11": {
-            "longest5kStreak": 17,
-            "longest5kStreakStart": None,
-            "longest5kStreakEnd": None,
-            "current5kStreak": 0,
-            "current5kStreakStart": None,
-            "current5kStreakEnd": None,
-            "longest5kStreakRank": 9,
+            "longestStreak": 17,
+            "longestStreakStart": None,
+            "longestStreakEnd": None,
+            "currentStreak": 0,
+            "currentStreakStart": None,
+            "currentStreakEnd": None,
+            "longestStreakRank": 9,
         },
     }
     build_user_data.write_leaderboard_json_file(
@@ -543,15 +543,15 @@ def test_write_user_json_files(
     monthly_stats: dict[str, build_user_data.MonthlyStats] = {
         "user1": {"monthlyAverage": 13085.2, "monthlyRank": 1},
     }
-    streaks_5k_stats: dict[str, build_user_data.Streaks5kStats] = {
+    streaks_5k_stats: dict[str, build_user_data.StreaksStats] = {
         "user1": {
-            "longest5kStreak": 3,
-            "longest5kStreakRank": 1,
-            "longest5kStreakStart": dt.date(2026, 11, 3),
-            "longest5kStreakEnd": dt.date(2026, 11, 5),
-            "current5kStreak": 2,
-            "current5kStreakStart": dt.date(2026, 11, 7),
-            "current5kStreakEnd": dt.date(2026, 11, 8),
+            "longestStreak": 3,
+            "longestStreakRank": 1,
+            "longestStreakStart": dt.date(2026, 11, 3),
+            "longestStreakEnd": dt.date(2026, 11, 5),
+            "currentStreak": 2,
+            "currentStreakStart": dt.date(2026, 11, 7),
+            "currentStreakEnd": dt.date(2026, 11, 8),
         }
     }
     user_data_inputs = build_user_data.UserDataInputs(
