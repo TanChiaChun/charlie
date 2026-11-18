@@ -70,7 +70,7 @@ const formattedLatestDate = computed(() => {
     case 'daily':
       return formatDate(latestDate.value)
 
-    case 'monthly':
+    case 'monthly': {
       if (!lastUpdated.value) {
         return ''
       }
@@ -80,12 +80,14 @@ const formattedLatestDate = computed(() => {
           ? lastUpdated.value
           : new Date(2026, 10, 30)
       return `${formatDate(monthStartDate)} - ${formatDate(monthEndDate)}`
+    }
 
-    case 'streaks5k':
+    case 'streaks5k': {
       const minDate = new Date(2026, 9, 12)
       return `${formatDate(minDate)} - ${formatDate(latestDate.value)}`
+    }
 
-    case 'weekly':
+    case 'weekly': {
       if (!lastUpdated.value) {
         return ''
       }
@@ -96,6 +98,7 @@ const formattedLatestDate = computed(() => {
           ? weekFullEndDate
           : lastUpdated.value
       return `${formatDate(latestDate.value)} - ${formatDate(weekEndDate)}`
+    }
 
     default:
       return ''
@@ -103,7 +106,7 @@ const formattedLatestDate = computed(() => {
 })
 const latestRecords = computed(() => {
   switch (selectedPeriod.value) {
-    case 'daily':
+    case 'daily': {
       if (!latestDateString.value) {
         return undefined
       }
@@ -113,35 +116,40 @@ const latestRecords = computed(() => {
         rank,
         value: steps,
       }))
+    }
 
-    case 'monthly':
+    case 'monthly': {
       switch (monthlyView.value) {
-        case 'individual':
+        case 'individual': {
           const monthlyRecords = leaderboardData.value?.monthly
           return monthlyRecords?.map(({ averageSteps, rank, username }) => ({
             name: username,
             rank,
             value: Math.floor(averageSteps),
           }))
+        }
 
-        case 'team':
+        case 'team': {
           const monthlyTeamRecords = leaderboardData.value?.monthlyTeams
           return monthlyTeamRecords?.map(({ averageSteps, rank, team }) => ({
             name: team,
             rank,
             value: Math.floor(averageSteps),
           }))
+        }
       }
+    }
 
-    case 'streaks5k':
+    case 'streaks5k': {
       const streaks5kRecords = leaderboardData.value?.streaks5k
       return streaks5kRecords?.map(({ days, rank, username }) => ({
         name: username,
         rank,
         value: days,
       }))
+    }
 
-    case 'weekly':
+    case 'weekly': {
       if (!latestDateString.value) {
         return undefined
       }
@@ -152,6 +160,7 @@ const latestRecords = computed(() => {
         rank,
         value: Math.floor(averageSteps),
       }))
+    }
 
     default:
       return undefined
