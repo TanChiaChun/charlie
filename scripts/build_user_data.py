@@ -50,10 +50,11 @@ class LeaderboardData:
     monthly_stats: dict[str, PeriodStats]
     monthly_team_stats: dict[str, PeriodStats]
     streaks_5k_stats: dict[str, StreaksStats]
+    streaks_10k_stats: dict[str, StreaksStats]
 
 
 @dataclass
-class UserData:
+class UserData:  # pylint: disable=too-many-instance-attributes
     """Data required to generate per-user JSON files."""
 
     user_public_ids: dict[str, str]
@@ -63,6 +64,7 @@ class UserData:
     weekly_stats: dict[dt.date, dict[str, PeriodStats]]
     monthly_stats: dict[str, PeriodStats]
     streaks_5k_stats: dict[str, StreaksStats]
+    streaks_10k_stats: dict[str, StreaksStats]
 
 
 def calculate_streaks_stats(
@@ -487,6 +489,24 @@ def write_leaderboard_json_file(
         for user, stats in sorted_streaks_5k_stats
     ]
 
+    sorted_streaks_10k_stats = sorted(
+        (
+            (user, stats)
+            for user, stats in leaderboard_data.streaks_10k_stats.items()
+            if isinstance(stats["longestStreakRank"], int)
+            and stats["longestStreakRank"] <= 10
+        ),
+        key=lambda x: (x[1]["longestStreakRank"], x[0].casefold()),
+    )
+    streaks_10k_leaderboard = [
+        {
+            "rank": stats["longestStreakRank"],
+            "days": stats["longestStreak"],
+            "username": user,
+        }
+        for user, stats in sorted_streaks_10k_stats
+    ]
+
     json_data = {
         "lastFetch": last_fetch,
         "daily": daily_leaderboard,
@@ -494,6 +514,7 @@ def write_leaderboard_json_file(
         "monthly": monthly_leaderboard,
         "monthlyTeams": monthly_team_leaderboard,
         "streaks5k": streaks_5k_leaderboard,
+        "streaks10k": streaks_10k_leaderboard,
     }
 
     PUBLIC_DIR.mkdir(exist_ok=True)
@@ -534,6 +555,18 @@ def write_user_json_files(
                 "longestStreakRank": None,
             },
         )
+        streaks_10k_stats: StreaksStats = user_data.streaks_10k_stats.get(
+            username,
+            {
+                "longestStreak": 0,
+                "longestStreakStart": None,
+                "longestStreakEnd": None,
+                "currentStreak": 0,
+                "currentStreakStart": None,
+                "currentStreakEnd": None,
+                "longestStreakRank": None,
+            },
+        )
 
         json_data = {
             "username": username,
@@ -562,6 +595,21 @@ def write_user_json_files(
                 ),
                 "current5kStreakEnd": format_date(
                     streaks_5k_stats["currentStreakEnd"]
+                ),
+                "longest10kStreak": streaks_10k_stats["longestStreak"],
+                "longest10kStreakRank": streaks_10k_stats["longestStreakRank"],
+                "longest10kStreakStart": format_date(
+                    streaks_10k_stats["longestStreakStart"]
+                ),
+                "longest10kStreakEnd": format_date(
+                    streaks_10k_stats["longestStreakEnd"]
+                ),
+                "current10kStreak": streaks_10k_stats["currentStreak"],
+                "current10kStreakStart": format_date(
+                    streaks_10k_stats["currentStreakStart"]
+                ),
+                "current10kStreakEnd": format_date(
+                    streaks_10k_stats["currentStreakEnd"]
                 ),
             },
         }
@@ -598,6 +646,13 @@ def main() -> None:
     streaks_5k_stats = calculate_streaks_stats(
         daily_steps_by_user, last_fetch_date, registered_users, 5000
     )
+    streaks_10k_stats = calculate_streaks_stats(
+        daily_steps_by_user,
+        last_fetch_date,
+        registered_users,
+        10000,
+        weekdays_only=True,
+    )
 
     write_user_json_files(
         UserData(
@@ -608,6 +663,7 @@ def main() -> None:
             weekly_stats,
             monthly_stats,
             streaks_5k_stats,
+            streaks_10k_stats,
         ),
         last_fetch,
         last_fetch_date,
@@ -619,6 +675,7 @@ def main() -> None:
             monthly_stats,
             monthly_team_stats,
             streaks_5k_stats,
+            streaks_10k_stats,
         ),
         last_fetch,
     )
