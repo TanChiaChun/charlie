@@ -20,6 +20,7 @@ test('displays the latest available daily leaderboard', async ({ page }) => {
     lastFetch: '2026-11-06T20:05:02',
     monthly: [{ averageSteps: 19266.8, rank: 1, username: 'NovUser' }],
     monthlyTeams: [{ averageSteps: 8000.0, rank: 1, team: 'Team1' }],
+    streaks10k: [{ days: 19, rank: 1, username: 'User2' }],
     streaks5k: [{ days: 29, rank: 1, username: 'User2' }],
     weekly: {
       '2026-10-12': [{ averageSteps: 15756.3, rank: 1, username: 'User1' }],
@@ -67,6 +68,7 @@ test('switches between daily and weekly leaderboards', async ({ page }) => {
     lastFetch: '2026-11-10T02:05:02',
     monthly: [{ averageSteps: 19266.8, rank: 1, username: 'NovUser' }],
     monthlyTeams: [{ averageSteps: 8000.0, rank: 1, team: 'Team1' }],
+    streaks10k: [{ days: 19, rank: 1, username: 'User2' }],
     streaks5k: [{ days: 29, rank: 1, username: 'User2' }],
     weekly: {
       '2026-10-19': [
@@ -110,6 +112,7 @@ test('displays the November leaderboard', async ({ page }) => {
       { averageSteps: 16451.5, rank: 2, username: 'User2' },
     ],
     monthlyTeams: [{ averageSteps: 8000.0, rank: 1, team: 'Team1' }],
+    streaks10k: [{ days: 19, rank: 1, username: 'User2' }],
     streaks5k: [{ days: 29, rank: 1, username: 'User2' }],
     weekly: {
       '2026-10-12': [{ averageSteps: 15756.3, rank: 1, username: 'User1' }],
@@ -141,6 +144,7 @@ test('displays the November team leaderboard', async ({ page }) => {
       { averageSteps: 8000.0, rank: 1, team: 'Team1' },
       { averageSteps: 6000.0, rank: 2, team: 'Team2' },
     ],
+    streaks10k: [{ days: 19, rank: 1, username: 'User2' }],
     streaks5k: [{ days: 29, rank: 1, username: 'User2' }],
     weekly: {
       '2026-10-12': [{ averageSteps: 15756.3, rank: 1, username: 'User1' }],
@@ -167,6 +171,7 @@ test('displays the 5K streak leaderboard', async ({ page }) => {
     lastFetch: '2026-11-10T15:05:02',
     monthly: [{ averageSteps: 19266.8, rank: 1, username: 'NovUser' }],
     monthlyTeams: [{ averageSteps: 8000.0, rank: 1, team: 'Team1' }],
+    streaks10k: [{ days: 19, rank: 1, username: 'User2' }],
     streaks5k: [
       { days: 29, rank: 1, username: '5kUser' },
       { days: 29, rank: 1, username: 'User6' },
@@ -189,8 +194,8 @@ test('displays the 5K streak leaderboard', async ({ page }) => {
   )
   await page.goto('/#/leaderboard')
 
-  await page.getByRole('tab', { name: '5K Streak' }).click()
-  await expect(page.getByRole('heading', { name: '5K Streak' })).toBeVisible()
+  await page.getByRole('tab', { name: 'Streaks' }).click()
+  await expect(page.getByRole('heading', { name: 'Streak' })).toBeVisible()
   await expect(page.getByText('12 Oct - 10 Nov')).toBeVisible()
 
   const records = page.getByTestId('leaderboard').locator(':scope > div')
@@ -199,6 +204,36 @@ test('displays the 5K streak leaderboard', async ({ page }) => {
   const firstRecord = records.first()
   await expect(firstRecord).toContainText('5kUser')
   await expect(firstRecord).toContainText('29')
+})
+
+test('displays the 10K weekday streak leaderboard', async ({ page }) => {
+  const leaderboardData = {
+    daily: { '2026-11-10': [{ rank: 1, steps: 2883, username: 'User1' }] },
+    lastFetch: '2026-11-10T15:05:02',
+    monthly: [{ averageSteps: 19266.8, rank: 1, username: 'NovUser' }],
+    monthlyTeams: [{ averageSteps: 8000.0, rank: 1, team: 'Team1' }],
+    streaks10k: [
+      { days: 19, rank: 1, username: '10kUser2' },
+      { days: 18, rank: 2, username: '10kUser1' },
+    ],
+    streaks5k: [{ days: 29, rank: 1, username: '5kUser' }],
+    weekly: {
+      '2026-10-12': [{ averageSteps: 15756.3, rank: 1, username: 'User1' }],
+    },
+  }
+  await page.route('**/leaderboard.json', (route) =>
+    route.fulfill({ json: leaderboardData }),
+  )
+  await page.goto('/#/leaderboard')
+
+  await page.getByRole('tab', { name: 'Streaks' }).click()
+  await page.getByRole('tab', { name: '10K Weekday' }).click()
+
+  const records = page.getByTestId('leaderboard').locator(':scope > div')
+  await expect(records).toHaveCount(2)
+
+  const firstRecord = records.first()
+  await expect(firstRecord).toContainText('10kUser2')
 })
 
 test('displays an error when leaderboard data fails to load', async ({

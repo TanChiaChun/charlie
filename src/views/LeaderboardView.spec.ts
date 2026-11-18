@@ -32,6 +32,7 @@ describe('LeaderboardView', () => {
       lastFetch: '2026-11-06T20:05:02',
       monthly: [{ averageSteps: 19266.8, rank: 1, username: 'NovUser' }],
       monthlyTeams: [{ averageSteps: 8000.0, rank: 1, team: 'Team1' }],
+      streaks10k: [{ days: 19, rank: 1, username: 'User2' }],
       streaks5k: [{ days: 29, rank: 1, username: 'User2' }],
       weekly: {
         '2026-10-12': [{ averageSteps: 15756.3, rank: 1, username: 'User1' }],
@@ -82,6 +83,7 @@ describe('LeaderboardView', () => {
       lastFetch: '2026-11-06T20:05:02',
       monthly: [{ averageSteps: 19266.8, rank: 1, username: 'NovUser' }],
       monthlyTeams: [{ averageSteps: 8000.0, rank: 1, team: 'Team1' }],
+      streaks10k: [{ days: 19, rank: 1, username: 'User2' }],
       streaks5k: [{ days: 29, rank: 1, username: 'User2' }],
       weekly: {
         '2026-10-12': [{ averageSteps: 15756.3, rank: 1, username: 'User1' }],
@@ -113,6 +115,7 @@ describe('LeaderboardView', () => {
       lastFetch: '2026-11-10T02:05:02',
       monthly: [{ averageSteps: 19266.8, rank: 1, username: 'NovUser' }],
       monthlyTeams: [{ averageSteps: 8000.0, rank: 1, team: 'Team1' }],
+      streaks10k: [{ days: 19, rank: 1, username: 'User2' }],
       streaks5k: [{ days: 29, rank: 1, username: 'User2' }],
       weekly: {
         '2026-10-12': [
@@ -159,6 +162,7 @@ describe('LeaderboardView', () => {
         { averageSteps: 16451.5, rank: 2, username: 'User2' },
       ],
       monthlyTeams: [{ averageSteps: 8000.0, rank: 1, team: 'Team1' }],
+      streaks10k: [{ days: 19, rank: 1, username: 'User2' }],
       streaks5k: [{ days: 29, rank: 1, username: 'User2' }],
       weekly: {
         '2026-10-12': [{ averageSteps: 15756.3, rank: 1, username: 'User1' }],
@@ -197,6 +201,7 @@ describe('LeaderboardView', () => {
         { averageSteps: 8000.0, rank: 1, team: 'Team1' },
         { averageSteps: 6000.0, rank: 2, team: 'Team2' },
       ],
+      streaks10k: [{ days: 19, rank: 1, username: 'User2' }],
       streaks5k: [{ days: 29, rank: 1, username: 'User2' }],
       weekly: {
         '2026-10-12': [{ averageSteps: 15756.3, rank: 1, username: 'User1' }],
@@ -232,6 +237,7 @@ describe('LeaderboardView', () => {
       lastFetch: '2026-11-10T15:05:02',
       monthly: [{ averageSteps: 19266.8, rank: 1, username: 'NovUser' }],
       monthlyTeams: [{ averageSteps: 8000.0, rank: 1, team: 'Team1' }],
+      streaks10k: [{ days: 19, rank: 1, username: 'User2' }],
       streaks5k: [
         { days: 29, rank: 1, username: '5kUser' },
         { days: 29, rank: 1, username: 'User6' },
@@ -262,7 +268,7 @@ describe('LeaderboardView', () => {
     const text = wrapper.text()
     expect(text).toContain('Leaderboard')
     expect(text).toContain('Last updated: 10 Nov, 3:05 pm')
-    expect(wrapper.get('h2').text()).toBe('5K Streak')
+    expect(wrapper.get('h2').text()).toBe('Streak')
     expect(text).toContain('12 Oct - 10 Nov')
 
     const leaderboardItems = wrapper.findAllComponents(LeaderboardItem)
@@ -271,6 +277,45 @@ describe('LeaderboardView', () => {
     const firstLeaderboardItemText = leaderboardItems[0]?.text()
     expect(firstLeaderboardItemText).toContain('5kUser')
     expect(firstLeaderboardItemText).toContain('29')
+  })
+
+  test('displays the 10K weekday streak leaderboard', async () => {
+    const mockLeaderboardData = {
+      daily: { '2026-11-10': [{ rank: 1, steps: 2883, username: 'User1' }] },
+      lastFetch: '2026-11-10T15:05:02',
+      monthly: [{ averageSteps: 19266.8, rank: 1, username: 'NovUser' }],
+      monthlyTeams: [{ averageSteps: 8000.0, rank: 1, team: 'Team1' }],
+      streaks10k: [
+        { days: 19, rank: 1, username: '10kUser2' },
+        { days: 18, rank: 2, username: '10kUser1' },
+      ],
+      streaks5k: [{ days: 29, rank: 1, username: '5kUser' }],
+      weekly: {
+        '2026-10-12': [{ averageSteps: 15756.3, rank: 1, username: 'User1' }],
+      },
+    }
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue({ json: async () => mockLeaderboardData, ok: true })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const wrapper = mount(LeaderboardView)
+    await flushPromises()
+
+    await wrapper.get('button[role="tab"]:nth-child(4)').trigger('mousedown')
+
+    let leaderboardItems = wrapper.findAllComponents(LeaderboardItem)
+    expect(leaderboardItems).toHaveLength(1)
+    expect(leaderboardItems[0]?.text()).toContain('5kUser')
+
+    const tabLists = wrapper.findAll('div[role="tablist"]')
+    await tabLists[1]
+      ?.get('button[role="tab"]:nth-child(2)')
+      .trigger('mousedown')
+
+    leaderboardItems = wrapper.findAllComponents(LeaderboardItem)
+    expect(leaderboardItems).toHaveLength(2)
+    expect(leaderboardItems[0]?.text()).toContain('10kUser2')
   })
 
   test('displays loading state while fetching leaderboard data', async () => {
