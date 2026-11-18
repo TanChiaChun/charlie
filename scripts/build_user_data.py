@@ -3,6 +3,7 @@
 import csv
 import datetime as dt
 import json
+from collections import defaultdict
 from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
@@ -41,7 +42,18 @@ class StreaksStats(TypedDict):
 
 
 @dataclass
-class UserDataInputs:
+class LeaderboardData:
+    """Data required to generate leaderboard JSON."""
+
+    daily_stats: dict[dt.date, dict[str, DailyStats]]
+    weekly_stats: dict[dt.date, dict[str, PeriodStats]]
+    monthly_stats: dict[str, PeriodStats]
+    monthly_team_stats: dict[str, PeriodStats]
+    streaks_5k_stats: dict[str, StreaksStats]
+
+
+@dataclass
+class UserData:
     """Data required to generate per-user JSON files."""
 
     user_public_ids: dict[str, str]
@@ -70,7 +82,7 @@ def calculate_5k_streaks_stats(
             daily_steps, last_fetch_date
         )
 
-    ranks = rank_users(
+    ranks = rank_by_scores(
         {user: stats["longestStreak"] for user, stats in streaks_stats.items()}
     )
     for user, stats in streaks_stats.items():
@@ -96,7 +108,7 @@ def calculate_daily_stats(
             user: daily_steps_by_user.get(user, {}).get(target_date_key, 0)
             for user in registered_users
         }
-        daily_ranks = rank_users(steps_by_user)
+        daily_ranks = rank_by_scores(steps_by_user)
         daily_stats[target_date] = {
             user: {
                 "steps": steps_by_user.get(user, 0),
@@ -127,7 +139,7 @@ def calculate_monthly_stats(
             daily_steps_by_user.get(user, {}).get(date, 0) for date in dates
         )
         monthly_averages[user] = total_steps / num_days
-    monthly_ranks = rank_users(monthly_averages)
+    monthly_ranks = rank_by_scores(monthly_averages)
 
     return {
         user: {
@@ -135,6 +147,29 @@ def calculate_monthly_stats(
             "rank": monthly_ranks.get(user),
         }
         for user in registered_users
+    }
+
+
+def calculate_monthly_team_stats(
+    monthly_stats: dict[str, PeriodStats], user_teams: dict[str, str]
+) -> dict[str, PeriodStats]:
+    """Calculate monthly average steps and ranks for each team."""
+    team_total_steps: defaultdict[str, float] = defaultdict(float)
+    team_member_count: defaultdict[str, int] = defaultdict(int)
+    for user, stats in monthly_stats.items():
+        team = user_teams[user]
+        team_total_steps[team] += stats["averageSteps"]
+        team_member_count[team] += 1
+
+    team_averages = {
+        team: total / team_member_count[team]
+        for team, total in team_total_steps.items()
+    }
+    team_ranks = rank_by_scores(team_averages)
+
+    return {
+        team: {"averageSteps": average, "rank": team_ranks.get(team)}
+        for team, average in team_averages.items()
     }
 
 
@@ -223,7 +258,7 @@ def calculate_weekly_stats(
                 daily_steps_by_user.get(user, {}).get(date, 0) for date in dates
             )
             weekly_averages[user] = total_steps / num_days
-        weekly_ranks = rank_users(weekly_averages)
+        weekly_ranks = rank_by_scores(weekly_averages)
         weekly_stats[week_start] = {
             user: {
                 "averageSteps": weekly_averages[user],
@@ -323,37 +358,34 @@ def parse_date_string(date_string: str, year: int) -> dt.date:
     return dt.date.strptime(f"{year}/{date_string}", "%Y/%m/%d")
 
 
-def rank_users(user_scores: Mapping[str, int | float]) -> dict[str, int]:
+def rank_by_scores(scores: Mapping[str, int | float]) -> dict[str, int]:
     """Rank by descending score, sharing ties and excluding zero scores."""
-    sorted_users = sorted(user_scores.items(), key=lambda x: x[1], reverse=True)
+    sorted_scores = sorted(scores.items(), key=lambda x: x[1], reverse=True)
 
     ranks = {}
     previous_score = None
     previous_rank = 0
-    for position, (user, score) in enumerate(sorted_users, start=1):
+    for position, (name, score) in enumerate(sorted_scores, start=1):
         if score <= 0:
             break
 
         if score != previous_score:
             previous_rank = position
 
-        ranks[user] = previous_rank
+        ranks[name] = previous_rank
         previous_score = score
 
     return ranks
 
 
 def write_leaderboard_json_file(
-    daily_stats: dict[dt.date, dict[str, DailyStats]],
-    weekly_stats: dict[dt.date, dict[str, PeriodStats]],
-    monthly_stats: dict[str, PeriodStats],
-    streaks_5k_stats: dict[str, StreaksStats],
+    leaderboard_data: LeaderboardData,
     last_fetch: str,
 ) -> None:
     """Write leaderboard data to a JSON file."""
     # pylint: disable=too-many-locals
     daily_leaderboard = {}
-    for date, user_stats in daily_stats.items():
+    for date, user_stats in leaderboard_data.daily_stats.items():
         sorted_user_stats = sorted(
             (
                 (user, stats)
@@ -372,7 +404,7 @@ def write_leaderboard_json_file(
         ]
 
     weekly_leaderboard = {}
-    for week_start, week_stats in weekly_stats.items():
+    for week_start, week_stats in leaderboard_data.weekly_stats.items():
         sorted_week_stats = sorted(
             (
                 (user, stats)
@@ -393,7 +425,7 @@ def write_leaderboard_json_file(
     sorted_monthly_stats = sorted(
         (
             (user, stats)
-            for user, stats in monthly_stats.items()
+            for user, stats in leaderboard_data.monthly_stats.items()
             if stats["rank"] is not None and stats["rank"] <= 20
         ),
         key=lambda x: (x[1]["rank"], x[0].casefold()),
@@ -407,10 +439,27 @@ def write_leaderboard_json_file(
         for user, stats in sorted_monthly_stats
     ]
 
+    sorted_monthly_team_stats = sorted(
+        (
+            (team, stats)
+            for team, stats in leaderboard_data.monthly_team_stats.items()
+            if stats["rank"] is not None
+        ),
+        key=lambda x: (x[1]["rank"], x[0].casefold()),
+    )
+    monthly_team_leaderboard = [
+        {
+            "rank": stats["rank"],
+            "averageSteps": stats["averageSteps"],
+            "team": team,
+        }
+        for team, stats in sorted_monthly_team_stats
+    ]
+
     sorted_streaks_5k_stats = sorted(
         (
             (user, stats)
-            for user, stats in streaks_5k_stats.items()
+            for user, stats in leaderboard_data.streaks_5k_stats.items()
             if isinstance(stats["longestStreakRank"], int)
             and stats["longestStreakRank"] <= 10
         ),
@@ -425,22 +474,23 @@ def write_leaderboard_json_file(
         for user, stats in sorted_streaks_5k_stats
     ]
 
-    leaderboard_data = {
+    json_data = {
         "lastFetch": last_fetch,
         "daily": daily_leaderboard,
         "weekly": weekly_leaderboard,
         "monthly": monthly_leaderboard,
+        "monthlyTeams": monthly_team_leaderboard,
         "streaks5k": streaks_5k_leaderboard,
     }
 
     PUBLIC_DIR.mkdir(exist_ok=True)
     (PUBLIC_DIR / "leaderboard.json").write_text(
-        json.dumps(leaderboard_data, ensure_ascii=False, indent=2)
+        json.dumps(json_data, ensure_ascii=False, indent=2)
     )
 
 
 def write_user_json_files(
-    inputs: UserDataInputs,
+    user_data: UserData,
     last_fetch: str,
     last_fetch_date: dt.date,
 ) -> None:
@@ -448,18 +498,18 @@ def write_user_json_files(
     output_dir = PUBLIC_DIR / "users"
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    current_week_start = max(inputs.weekly_stats)
-    for username, public_id in inputs.user_public_ids.items():
-        daily_stats: DailyStats = inputs.daily_stats[last_fetch_date].get(
+    current_week_start = max(user_data.weekly_stats)
+    for username, public_id in user_data.user_public_ids.items():
+        daily_stats: DailyStats = user_data.daily_stats[last_fetch_date].get(
             username, {"steps": 0, "rank": None}
         )
-        weekly_stats: PeriodStats = inputs.weekly_stats[current_week_start].get(
+        weekly_stats: PeriodStats = user_data.weekly_stats[
+            current_week_start
+        ].get(username, {"averageSteps": 0.0, "rank": None})
+        monthly_stats: PeriodStats = user_data.monthly_stats.get(
             username, {"averageSteps": 0.0, "rank": None}
         )
-        monthly_stats: PeriodStats = inputs.monthly_stats.get(
-            username, {"averageSteps": 0.0, "rank": None}
-        )
-        streaks_5k_stats: StreaksStats = inputs.streaks_5k_stats.get(
+        streaks_5k_stats: StreaksStats = user_data.streaks_5k_stats.get(
             username,
             {
                 "longestStreak": 0,
@@ -472,12 +522,12 @@ def write_user_json_files(
             },
         )
 
-        user_data = {
+        json_data = {
             "username": username,
-            "team": inputs.user_teams[username],
+            "team": user_data.user_teams[username],
             "lastFetch": last_fetch,
             "dailySteps": get_recent_daily_steps(
-                inputs.daily_steps_by_user.get(username, {}), last_fetch_date
+                user_data.daily_steps_by_user.get(username, {}), last_fetch_date
             ),
             "stats": {
                 "dailyRank": daily_stats["rank"],
@@ -503,7 +553,7 @@ def write_user_json_files(
             },
         }
         (output_dir / f"{public_id}.json").write_text(
-            json.dumps(user_data, ensure_ascii=False, indent=2)
+            json.dumps(json_data, ensure_ascii=False, indent=2)
         )
 
 
@@ -531,12 +581,13 @@ def main() -> None:
         min(last_fetch_date, dt.date(2026, 11, 30)),
         registered_users,
     )
+    monthly_team_stats = calculate_monthly_team_stats(monthly_stats, user_teams)
     streaks_5k_stats = calculate_5k_streaks_stats(
         daily_steps_by_user, last_fetch_date, registered_users
     )
 
     write_user_json_files(
-        UserDataInputs(
+        UserData(
             user_public_ids,
             user_teams,
             daily_steps_by_user,
@@ -549,7 +600,14 @@ def main() -> None:
         last_fetch_date,
     )
     write_leaderboard_json_file(
-        daily_stats, weekly_stats, monthly_stats, streaks_5k_stats, last_fetch
+        LeaderboardData(
+            daily_stats,
+            weekly_stats,
+            monthly_stats,
+            monthly_team_stats,
+            streaks_5k_stats,
+        ),
+        last_fetch,
     )
 
 

@@ -69,6 +69,26 @@ def test_calculate_monthly_stats() -> None:
     }
 
 
+def test_calculate_monthly_team_stats() -> None:
+    monthly_stats: dict[str, build_user_data.PeriodStats] = {
+        "user1": {"averageSteps": 10000.0, "rank": 1},
+        "user2": {"averageSteps": 8000.0, "rank": 2},
+        "user3": {"averageSteps": 6000.0, "rank": 3},
+    }
+    user_teams = {
+        "user1": "team1",
+        "user2": "team1",
+        "user3": "team2",
+    }
+
+    assert build_user_data.calculate_monthly_team_stats(
+        monthly_stats, user_teams
+    ) == {
+        "team1": {"averageSteps": 9000.0, "rank": 1},
+        "team2": {"averageSteps": 6000.0, "rank": 2},
+    }
+
+
 def test_calculate_user_5k_streaks() -> None:
     start_date = build_user_data.MIN_DATE
     today = start_date + dt.timedelta(days=5)
@@ -243,8 +263,8 @@ def test_parse_date_string() -> None:
     )
 
 
-def test_rank_users() -> None:
-    assert build_user_data.rank_users(
+def test_rank_by_scores() -> None:
+    assert build_user_data.rank_by_scores(
         {
             "user1": 10000,
             "user2": 12000,
@@ -325,6 +345,10 @@ def test_write_leaderboard_json_file(
         "User18": {"averageSteps": 10572.9, "rank": 18},
         "User19": {"averageSteps": 10143.2, "rank": 19},
         "User20": {"averageSteps": 10113.5, "rank": 20},
+    }
+    monthly_team_stats: dict[str, build_user_data.PeriodStats] = {
+        "Team1": {"averageSteps": 9000.0, "rank": 1},
+        "Team2": {"averageSteps": 6000.0, "rank": 2},
     }
     streaks_5k_stats: dict[str, build_user_data.StreaksStats] = {
         "User1": {
@@ -428,10 +452,13 @@ def test_write_leaderboard_json_file(
         },
     }
     build_user_data.write_leaderboard_json_file(
-        daily_stats,
-        weekly_stats,
-        monthly_stats,
-        streaks_5k_stats,
+        build_user_data.LeaderboardData(
+            daily_stats,
+            weekly_stats,
+            monthly_stats,
+            monthly_team_stats,
+            streaks_5k_stats,
+        ),
         "2026-11-06T07:05:02",
     )
 
@@ -495,6 +522,12 @@ def test_write_leaderboard_json_file(
         {"rank": 20, "averageSteps": 10113.5, "username": "User20"},
     ]
 
+    assert len(result["monthlyTeams"]) == 2
+    assert result["monthlyTeams"] == [
+        {"rank": 1, "averageSteps": 9000.0, "team": "Team1"},
+        {"rank": 2, "averageSteps": 6000.0, "team": "Team2"},
+    ]
+
     assert len(result["streaks5k"]) == 11
     assert result["streaks5k"] == [
         {"rank": 1, "days": 29, "username": "User10"},
@@ -550,7 +583,7 @@ def test_write_user_json_files(
             "currentStreakEnd": dt.date(2026, 11, 8),
         }
     }
-    user_data_inputs = build_user_data.UserDataInputs(
+    user_data = build_user_data.UserData(
         user_public_ids,
         user_teams,
         daily_steps_by_user,
@@ -560,7 +593,7 @@ def test_write_user_json_files(
         streaks_5k_stats,
     )
     build_user_data.write_user_json_files(
-        user_data_inputs,
+        user_data,
         "2026-11-08T23:05:02",
         dt.date(2026, 11, 8),
     )

@@ -5,6 +5,7 @@ import type {
   DailyLeaderboardRecord,
   PeriodLeaderboardRecord,
   Streak5kLeaderboardRecord,
+  TeamLeaderboardRecord,
 } from '@/types/leaderboard'
 
 import LeaderboardItem from '@/components/LeaderboardItem.vue'
@@ -15,6 +16,7 @@ interface LeaderboardData {
   daily: Record<string, DailyLeaderboardRecord[]>
   lastFetch: string
   monthly: PeriodLeaderboardRecord[]
+  monthlyTeams: TeamLeaderboardRecord[]
   streaks5k: Streak5kLeaderboardRecord[]
   weekly: Record<string, PeriodLeaderboardRecord[]>
 }
@@ -31,6 +33,7 @@ const leaderboardData = ref<LeaderboardData | null>(null)
 const selectedPeriod = ref<'daily' | 'monthly' | 'streaks5k' | 'weekly'>(
   'daily',
 )
+const monthlyView = ref<'individual' | 'team'>('individual')
 
 const lastUpdated = computed(() =>
   leaderboardData.value?.lastFetch
@@ -67,7 +70,7 @@ const formattedLatestDate = computed(() => {
     case 'daily':
       return formatDate(latestDate.value)
 
-    case 'monthly':
+    case 'monthly': {
       if (!lastUpdated.value) {
         return ''
       }
@@ -77,12 +80,14 @@ const formattedLatestDate = computed(() => {
           ? lastUpdated.value
           : new Date(2026, 10, 30)
       return `${formatDate(monthStartDate)} - ${formatDate(monthEndDate)}`
+    }
 
-    case 'streaks5k':
+    case 'streaks5k': {
       const minDate = new Date(2026, 9, 12)
       return `${formatDate(minDate)} - ${formatDate(latestDate.value)}`
+    }
 
-    case 'weekly':
+    case 'weekly': {
       if (!lastUpdated.value) {
         return ''
       }
@@ -93,6 +98,7 @@ const formattedLatestDate = computed(() => {
           ? weekFullEndDate
           : lastUpdated.value
       return `${formatDate(latestDate.value)} - ${formatDate(weekEndDate)}`
+    }
 
     default:
       return ''
@@ -100,44 +106,61 @@ const formattedLatestDate = computed(() => {
 })
 const latestRecords = computed(() => {
   switch (selectedPeriod.value) {
-    case 'daily':
+    case 'daily': {
       if (!latestDateString.value) {
         return undefined
       }
       const dailyRecords = leaderboardData.value?.daily[latestDateString.value]
       return dailyRecords?.map(({ rank, steps, username }) => ({
+        name: username,
         rank,
-        username,
         value: steps,
       }))
+    }
 
-    case 'monthly':
-      const monthlyRecords = leaderboardData.value?.monthly
-      return monthlyRecords?.map(({ averageSteps, rank, username }) => ({
-        rank,
-        username,
-        value: Math.floor(averageSteps),
-      }))
+    case 'monthly': {
+      switch (monthlyView.value) {
+        case 'individual': {
+          const monthlyRecords = leaderboardData.value?.monthly
+          return monthlyRecords?.map(({ averageSteps, rank, username }) => ({
+            name: username,
+            rank,
+            value: Math.floor(averageSteps),
+          }))
+        }
 
-    case 'streaks5k':
+        case 'team': {
+          const monthlyTeamRecords = leaderboardData.value?.monthlyTeams
+          return monthlyTeamRecords?.map(({ averageSteps, rank, team }) => ({
+            name: team,
+            rank,
+            value: Math.floor(averageSteps),
+          }))
+        }
+      }
+    }
+
+    case 'streaks5k': {
       const streaks5kRecords = leaderboardData.value?.streaks5k
       return streaks5kRecords?.map(({ days, rank, username }) => ({
+        name: username,
         rank,
-        username,
         value: days,
       }))
+    }
 
-    case 'weekly':
+    case 'weekly': {
       if (!latestDateString.value) {
         return undefined
       }
       const weeklyRecords =
         leaderboardData.value?.weekly[latestDateString.value]
       return weeklyRecords?.map(({ averageSteps, rank, username }) => ({
+        name: username,
         rank,
-        username,
         value: Math.floor(averageSteps),
       }))
+    }
 
     default:
       return undefined
@@ -180,6 +203,13 @@ onMounted(async () => {
       </TabsList>
     </Tabs>
 
+    <Tabs v-if="selectedPeriod === 'monthly'" v-model="monthlyView">
+      <TabsList class="h-8 w-full">
+        <TabsTrigger class="text-xs" value="individual">Individual</TabsTrigger>
+        <TabsTrigger class="text-xs" value="team">Team</TabsTrigger>
+      </TabsList>
+    </Tabs>
+
     <div class="mx-auto max-w-xl space-y-5">
       <div class="flex items-center justify-between">
         <h2 class="font-semibold sm:text-lg">
@@ -193,7 +223,7 @@ onMounted(async () => {
       <div class="flex flex-col gap-6 sm:gap-7" data-testid="leaderboard">
         <LeaderboardItem
           v-for="record in latestRecords"
-          :key="record.username"
+          :key="record.name"
           :record="record"
           :max-value="maxValue"
         />

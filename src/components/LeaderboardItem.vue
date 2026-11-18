@@ -17,7 +17,7 @@ const progress = computed(() => (props.record.value / props.maxValue) * 100)
 
     <div class="flex-1 space-y-1">
       <div class="flex items-center justify-between gap-3">
-        <span class="font-medium sm:text-lg">{{ record.username }}</span>
+        <span class="font-medium sm:text-lg">{{ record.name }}</span>
         <span class="text-muted-foreground tabular-nums">{{
           record.value.toLocaleString()
         }}</span>

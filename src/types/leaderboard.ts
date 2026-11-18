@@ -5,8 +5,8 @@ export interface DailyLeaderboardRecord {
 }
 
 export interface LeaderboardRecord {
+  name: string
   rank: number
-  username: string
   value: number
 }
 
@@ -20,4 +20,10 @@ export interface Streak5kLeaderboardRecord {
   days: number
   rank: number
   username: string
+}
+
+export interface TeamLeaderboardRecord {
+  averageSteps: number
+  rank: number
+  team: string
 }
