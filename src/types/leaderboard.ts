@@ -21,3 +21,9 @@ export interface Streak5kLeaderboardRecord {
   rank: number
   username: string
 }
+
+export interface TeamLeaderboardRecord {
+  averageSteps: number
+  rank: number
+  team: string
+}

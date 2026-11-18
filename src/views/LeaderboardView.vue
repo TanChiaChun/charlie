@@ -5,6 +5,7 @@ import type {
   DailyLeaderboardRecord,
   PeriodLeaderboardRecord,
   Streak5kLeaderboardRecord,
+  TeamLeaderboardRecord,
 } from '@/types/leaderboard'
 
 import LeaderboardItem from '@/components/LeaderboardItem.vue'
@@ -15,6 +16,7 @@ interface LeaderboardData {
   daily: Record<string, DailyLeaderboardRecord[]>
   lastFetch: string
   monthly: PeriodLeaderboardRecord[]
+  monthlyTeams: TeamLeaderboardRecord[]
   streaks5k: Streak5kLeaderboardRecord[]
   weekly: Record<string, PeriodLeaderboardRecord[]>
 }
@@ -31,6 +33,7 @@ const leaderboardData = ref<LeaderboardData | null>(null)
 const selectedPeriod = ref<'daily' | 'monthly' | 'streaks5k' | 'weekly'>(
   'daily',
 )
+const monthlyView = ref<'individual' | 'team'>('individual')
 
 const lastUpdated = computed(() =>
   leaderboardData.value?.lastFetch
@@ -112,12 +115,23 @@ const latestRecords = computed(() => {
       }))
 
     case 'monthly':
-      const monthlyRecords = leaderboardData.value?.monthly
-      return monthlyRecords?.map(({ averageSteps, rank, username }) => ({
-        name: username,
-        rank,
-        value: Math.floor(averageSteps),
-      }))
+      switch (monthlyView.value) {
+        case 'individual':
+          const monthlyRecords = leaderboardData.value?.monthly
+          return monthlyRecords?.map(({ averageSteps, rank, username }) => ({
+            name: username,
+            rank,
+            value: Math.floor(averageSteps),
+          }))
+
+        case 'team':
+          const monthlyTeamRecords = leaderboardData.value?.monthlyTeams
+          return monthlyTeamRecords?.map(({ averageSteps, rank, team }) => ({
+            name: team,
+            rank,
+            value: Math.floor(averageSteps),
+          }))
+      }
 
     case 'streaks5k':
       const streaks5kRecords = leaderboardData.value?.streaks5k
@@ -177,6 +191,13 @@ onMounted(async () => {
         <TabsTrigger value="weekly">Weekly</TabsTrigger>
         <TabsTrigger value="monthly">November</TabsTrigger>
         <TabsTrigger value="streaks5k">5K Streak</TabsTrigger>
+      </TabsList>
+    </Tabs>
+
+    <Tabs v-if="selectedPeriod === 'monthly'" v-model="monthlyView">
+      <TabsList class="h-8 w-full">
+        <TabsTrigger class="text-xs" value="individual">Individual</TabsTrigger>
+        <TabsTrigger class="text-xs" value="team">Team</TabsTrigger>
       </TabsList>
     </Tabs>
 
