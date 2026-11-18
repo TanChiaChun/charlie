@@ -4,7 +4,7 @@ import { computed, onMounted, ref } from 'vue'
 import type {
   DailyLeaderboardRecord,
   PeriodLeaderboardRecord,
-  Streak5kLeaderboardRecord,
+  StreakLeaderboardRecord,
   TeamLeaderboardRecord,
 } from '@/types/leaderboard'
 
@@ -17,23 +17,23 @@ interface LeaderboardData {
   lastFetch: string
   monthly: PeriodLeaderboardRecord[]
   monthlyTeams: TeamLeaderboardRecord[]
-  streaks5k: Streak5kLeaderboardRecord[]
+  streaks10k: StreakLeaderboardRecord[]
+  streaks5k: StreakLeaderboardRecord[]
   weekly: Record<string, PeriodLeaderboardRecord[]>
 }
 
 const periodTitles = {
   daily: 'Daily',
   monthly: 'November',
-  streaks5k: '5K Streak',
+  streaks: 'Streak',
   weekly: 'Weekly',
 }
 
 const status = ref<'error' | 'pending' | 'success'>('pending')
 const leaderboardData = ref<LeaderboardData | null>(null)
-const selectedPeriod = ref<'daily' | 'monthly' | 'streaks5k' | 'weekly'>(
-  'daily',
-)
+const selectedPeriod = ref<'daily' | 'monthly' | 'streaks' | 'weekly'>('daily')
 const monthlyView = ref<'individual' | 'team'>('individual')
+const streakView = ref<'10k' | '5k'>('5k')
 
 const lastUpdated = computed(() =>
   leaderboardData.value?.lastFetch
@@ -43,7 +43,7 @@ const lastUpdated = computed(() =>
 const latestDateString = computed(() => {
   if (
     selectedPeriod.value === 'monthly' ||
-    selectedPeriod.value === 'streaks5k'
+    selectedPeriod.value === 'streaks'
   ) {
     return leaderboardData.value?.lastFetch.slice(0, 10)
   }
@@ -82,7 +82,7 @@ const formattedLatestDate = computed(() => {
       return `${formatDate(monthStartDate)} - ${formatDate(monthEndDate)}`
     }
 
-    case 'streaks5k': {
+    case 'streaks': {
       const minDate = new Date(2026, 9, 12)
       return `${formatDate(minDate)} - ${formatDate(latestDate.value)}`
     }
@@ -140,9 +140,12 @@ const latestRecords = computed(() => {
       }
     }
 
-    case 'streaks5k': {
-      const streaks5kRecords = leaderboardData.value?.streaks5k
-      return streaks5kRecords?.map(({ days, rank, username }) => ({
+    case 'streaks': {
+      const streaksRecords =
+        streakView.value === '5k'
+          ? leaderboardData.value?.streaks5k
+          : leaderboardData.value?.streaks10k
+      return streaksRecords?.map(({ days, rank, username }) => ({
         name: username,
         rank,
         value: days,
@@ -199,7 +202,7 @@ onMounted(async () => {
         <TabsTrigger value="daily">Daily</TabsTrigger>
         <TabsTrigger value="weekly">Weekly</TabsTrigger>
         <TabsTrigger value="monthly">November</TabsTrigger>
-        <TabsTrigger value="streaks5k">5K Streak</TabsTrigger>
+        <TabsTrigger value="streaks">Streaks</TabsTrigger>
       </TabsList>
     </Tabs>
 
@@ -207,6 +210,12 @@ onMounted(async () => {
       <TabsList class="h-8 w-full">
         <TabsTrigger class="text-xs" value="individual">Individual</TabsTrigger>
         <TabsTrigger class="text-xs" value="team">Team</TabsTrigger>
+      </TabsList>
+    </Tabs>
+    <Tabs v-if="selectedPeriod === 'streaks'" v-model="streakView">
+      <TabsList class="h-8 w-full">
+        <TabsTrigger class="text-xs" value="5k">5K</TabsTrigger>
+        <TabsTrigger class="text-xs" value="10k">10K Weekday</TabsTrigger>
       </TabsList>
     </Tabs>
 

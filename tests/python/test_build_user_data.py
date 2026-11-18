@@ -7,17 +7,18 @@ import pytest
 import build_user_data
 
 
-def test_calculate_5k_streaks_stats() -> None:
+def test_calculate_streaks_stats_5000() -> None:
     daily_steps_by_user = {
         "user1": {"10/13": 6000, "10/12": 5000},
         "user2": {"10/13": 8000, "10/12": 7000},
         "user3": {"10/13": 3500, "10/12": 3000},
     }
 
-    stats = build_user_data.calculate_5k_streaks_stats(
+    stats = build_user_data.calculate_streaks_stats(
         daily_steps_by_user,
         build_user_data.MIN_DATE + dt.timedelta(days=2),
         {"user1", "user2", "user3"},
+        5000,
     )
     assert stats["user1"]["longestStreak"] == 2
     assert stats["user1"]["longestStreakRank"] == 1
@@ -89,7 +90,7 @@ def test_calculate_monthly_team_stats() -> None:
     }
 
 
-def test_calculate_user_5k_streaks() -> None:
+def test_calculate_user_streaks_5000() -> None:
     start_date = build_user_data.MIN_DATE
     today = start_date + dt.timedelta(days=5)
     daily_steps = {
@@ -101,12 +102,37 @@ def test_calculate_user_5k_streaks() -> None:
         start_date: 5000,
     }
 
-    assert build_user_data.calculate_user_5k_streaks(daily_steps, today) == {
+    assert build_user_data.calculate_user_streaks(daily_steps, today, 5000) == {
         "longestStreak": 3,
         "longestStreakStart": start_date,
         "longestStreakEnd": start_date + dt.timedelta(days=2),
         "currentStreak": 2,
         "currentStreakStart": start_date + dt.timedelta(days=4),
+        "currentStreakEnd": today,
+    }
+
+
+def test_calculate_user_streaks_10000() -> None:
+    start_date = build_user_data.MIN_DATE
+    today = start_date + dt.timedelta(days=7)
+    daily_steps = {
+        today: 10000,
+        start_date + dt.timedelta(days=5): 9000,
+        start_date + dt.timedelta(days=4): 15000,
+        start_date + dt.timedelta(days=3): 13000,
+        start_date + dt.timedelta(days=2): 12000,
+        start_date + dt.timedelta(days=1): 11000,
+        start_date: 10000,
+    }
+
+    assert build_user_data.calculate_user_streaks(
+        daily_steps, today, 10000, weekdays_only=True
+    ) == {
+        "longestStreak": 6,
+        "longestStreakStart": start_date,
+        "longestStreakEnd": today,
+        "currentStreak": 6,
+        "currentStreakStart": start_date,
         "currentStreakEnd": today,
     }
 
@@ -451,6 +477,26 @@ def test_write_leaderboard_json_file(
             "longestStreakRank": 9,
         },
     }
+    streaks_10k_stats: dict[str, build_user_data.StreaksStats] = {
+        "User1": {
+            "longestStreak": 27,
+            "longestStreakStart": dt.date(2026, 10, 12),
+            "longestStreakEnd": dt.date(2026, 11, 17),
+            "currentStreak": 27,
+            "currentStreakStart": dt.date(2026, 10, 12),
+            "currentStreakEnd": dt.date(2026, 11, 17),
+            "longestStreakRank": 1,
+        },
+        "User2": {
+            "longestStreak": 16,
+            "longestStreakStart": dt.date(2026, 10, 27),
+            "longestStreakEnd": dt.date(2026, 11, 17),
+            "currentStreak": 16,
+            "currentStreakStart": dt.date(2026, 10, 27),
+            "currentStreakEnd": dt.date(2026, 11, 17),
+            "longestStreakRank": 2,
+        },
+    }
     build_user_data.write_leaderboard_json_file(
         build_user_data.LeaderboardData(
             daily_stats,
@@ -458,6 +504,7 @@ def test_write_leaderboard_json_file(
             monthly_stats,
             monthly_team_stats,
             streaks_5k_stats,
+            streaks_10k_stats,
         ),
         "2026-11-06T07:05:02",
     )
@@ -543,6 +590,12 @@ def test_write_leaderboard_json_file(
         {"rank": 9, "days": 17, "username": "User9"},
     ]
 
+    assert len(result["streaks10k"]) == 2
+    assert result["streaks10k"] == [
+        {"rank": 1, "days": 27, "username": "User1"},
+        {"rank": 2, "days": 16, "username": "User2"},
+    ]
+
 
 def test_write_user_json_files(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
@@ -583,6 +636,17 @@ def test_write_user_json_files(
             "currentStreakEnd": dt.date(2026, 11, 8),
         }
     }
+    streaks_10k_stats: dict[str, build_user_data.StreaksStats] = {
+        "user1": {
+            "longestStreak": 27,
+            "longestStreakRank": 1,
+            "longestStreakStart": dt.date(2026, 10, 12),
+            "longestStreakEnd": dt.date(2026, 11, 17),
+            "currentStreak": 27,
+            "currentStreakStart": dt.date(2026, 10, 12),
+            "currentStreakEnd": dt.date(2026, 11, 17),
+        }
+    }
     user_data = build_user_data.UserData(
         user_public_ids,
         user_teams,
@@ -591,6 +655,7 @@ def test_write_user_json_files(
         weekly_stats,
         monthly_stats,
         streaks_5k_stats,
+        streaks_10k_stats,
     )
     build_user_data.write_user_json_files(
         user_data,
@@ -624,6 +689,13 @@ def test_write_user_json_files(
             "current5kStreak": 2,
             "current5kStreakStart": "2026-11-07",
             "current5kStreakEnd": "2026-11-08",
+            "longest10kStreak": 27,
+            "longest10kStreakRank": 1,
+            "longest10kStreakStart": "2026-10-12",
+            "longest10kStreakEnd": "2026-11-17",
+            "current10kStreak": 27,
+            "current10kStreakStart": "2026-10-12",
+            "current10kStreakEnd": "2026-11-17",
         },
     }
     assert json.loads((output_dir / "token2.json").read_text()) == {
@@ -644,5 +716,12 @@ def test_write_user_json_files(
             "current5kStreak": 0,
             "current5kStreakStart": None,
             "current5kStreakEnd": None,
+            "longest10kStreak": 0,
+            "longest10kStreakRank": None,
+            "longest10kStreakStart": None,
+            "longest10kStreakEnd": None,
+            "current10kStreak": 0,
+            "current10kStreakStart": None,
+            "current10kStreakEnd": None,
         },
     }

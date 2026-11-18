@@ -39,10 +39,17 @@ describe('UserView', () => {
       dailySteps: { '10/31': 8326, '11/01': 13668 },
       lastFetch: '2026-11-01T23:05:02',
       stats: {
+        current10kStreak: 27,
+        current10kStreakEnd: '2026-11-17',
+        current10kStreakStart: '2026-10-12',
         current5kStreak: 2,
         current5kStreakEnd: '2026-11-01',
         current5kStreakStart: '2026-10-31',
         dailyRank: 2,
+        longest10kStreak: 27,
+        longest10kStreakEnd: '2026-11-17',
+        longest10kStreakRank: 1,
+        longest10kStreakStart: '2026-10-12',
         longest5kStreak: 18,
         longest5kStreakEnd: '2026-10-29',
         longest5kStreakRank: 3,
@@ -74,7 +81,7 @@ describe('UserView', () => {
     expect(leaderboardLink.text()).toContain('View Leaderboard')
 
     const statsCards = wrapper.findAllComponents(StatsCard)
-    expect(statsCards).toHaveLength(5)
+    expect(statsCards).toHaveLength(7)
 
     const todayCardText = statsCards[0]?.text()
     expect(todayCardText).toContain('Today')
@@ -103,6 +110,17 @@ describe('UserView', () => {
     expect(longest5kStreakCardText).toContain('18days')
     expect(longest5kStreakCardText).toContain('#3')
     expect(longest5kStreakCardText).toContain('12 Oct - 29 Oct')
+
+    const current10kStreakCardText = statsCards[5]?.text()
+    expect(current10kStreakCardText).toContain('Current 10K Weekday Streak')
+    expect(current10kStreakCardText).toContain('27days')
+    expect(current10kStreakCardText).toContain('12 Oct - 17 Nov')
+
+    const longest10kStreakCardText = statsCards[6]?.text()
+    expect(longest10kStreakCardText).toContain('Longest 10K Weekday Streak')
+    expect(longest10kStreakCardText).toContain('27days')
+    expect(longest10kStreakCardText).toContain('#1')
+    expect(longest10kStreakCardText).toContain('12 Oct - 17 Nov')
   })
 
   test('renders zero values when user has no activity', async () => {
@@ -110,10 +128,17 @@ describe('UserView', () => {
       dailySteps: { '10/31': 0 },
       lastFetch: '2026-11-03T23:05:02',
       stats: {
+        current10kStreak: 0,
+        current10kStreakEnd: null,
+        current10kStreakStart: null,
         current5kStreak: 0,
         current5kStreakEnd: null,
         current5kStreakStart: null,
         dailyRank: null,
+        longest10kStreak: 0,
+        longest10kStreakEnd: null,
+        longest10kStreakRank: null,
+        longest10kStreakStart: null,
         longest5kStreak: 0,
         longest5kStreakEnd: null,
         longest5kStreakRank: null,
@@ -135,7 +160,7 @@ describe('UserView', () => {
     await flushPromises()
 
     const statsCards = wrapper.findAllComponents(StatsCard)
-    expect(statsCards).toHaveLength(5)
+    expect(statsCards).toHaveLength(7)
 
     const todayCardText = statsCards[0]?.text()
     expect(todayCardText).toContain('Today')
@@ -162,6 +187,15 @@ describe('UserView', () => {
     expect(longest5kStreakCardText).toContain('Longest 5K Streak')
     expect(longest5kStreakCardText).toContain('0days')
     expect(longest5kStreakCardText).not.toContain('Rank')
+
+    const current10kStreakCardText = statsCards[5]?.text()
+    expect(current10kStreakCardText).toContain('Current 10K Weekday Streak')
+    expect(current10kStreakCardText).toContain('0days')
+
+    const longest10kStreakCardText = statsCards[6]?.text()
+    expect(longest10kStreakCardText).toContain('Longest 10K Weekday Streak')
+    expect(longest10kStreakCardText).toContain('0days')
+    expect(longest10kStreakCardText).not.toContain('Rank')
   })
 
   test('displays the completed November date range after November', async () => {
@@ -169,10 +203,17 @@ describe('UserView', () => {
       dailySteps: { '10/31': 0 },
       lastFetch: '2026-12-01T23:05:02',
       stats: {
+        current10kStreak: 0,
+        current10kStreakEnd: null,
+        current10kStreakStart: null,
         current5kStreak: 0,
         current5kStreakEnd: null,
         current5kStreakStart: null,
         dailyRank: null,
+        longest10kStreak: 0,
+        longest10kStreakEnd: null,
+        longest10kStreakRank: null,
+        longest10kStreakStart: null,
         longest5kStreak: 0,
         longest5kStreakEnd: null,
         longest5kStreakRank: null,

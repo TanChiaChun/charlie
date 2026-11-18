@@ -16,7 +16,7 @@ export interface PeriodLeaderboardRecord {
   username: string
 }
 
-export interface Streak5kLeaderboardRecord {
+export interface StreakLeaderboardRecord {
   days: number
   rank: number
   username: string

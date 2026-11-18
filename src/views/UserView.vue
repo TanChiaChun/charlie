@@ -14,10 +14,17 @@ interface UserData {
   dailySteps: Record<string, number>
   lastFetch: string
   stats: {
+    current10kStreak: number
+    current10kStreakEnd: null | string
+    current10kStreakStart: null | string
     current5kStreak: number
     current5kStreakEnd: null | string
     current5kStreakStart: null | string
     dailyRank: null | number
+    longest10kStreak: number
+    longest10kStreakEnd: null | string
+    longest10kStreakRank: null | number
+    longest10kStreakStart: null | string
     longest5kStreak: number
     longest5kStreakEnd: null | string
     longest5kStreakRank: null | number
@@ -103,6 +110,18 @@ const current5kStreakRange = computed(() => {
     userData.value?.stats ?? {}
 
   return formatDateRange(current5kStreakStart, current5kStreakEnd)
+})
+const longest10kStreakRange = computed(() => {
+  const { longest10kStreakEnd, longest10kStreakStart } =
+    userData.value?.stats ?? {}
+
+  return formatDateRange(longest10kStreakStart, longest10kStreakEnd)
+})
+const current10kStreakRange = computed(() => {
+  const { current10kStreakEnd, current10kStreakStart } =
+    userData.value?.stats ?? {}
+
+  return formatDateRange(current10kStreakStart, current10kStreakEnd)
 })
 
 function formatDate(date: Date): string {
@@ -211,6 +230,19 @@ watch(
         unit="days"
         :rank="userData.stats.longest5kStreakRank"
         :subtitle="longest5kStreakRange"
+      />
+      <StatsCard
+        title="Current 10K Weekday Streak"
+        :value="userData.stats.current10kStreak"
+        unit="days"
+        :subtitle="current10kStreakRange"
+      />
+      <StatsCard
+        title="Longest 10K Weekday Streak"
+        :value="userData.stats.longest10kStreak"
+        unit="days"
+        :rank="userData.stats.longest10kStreakRank"
+        :subtitle="longest10kStreakRange"
       />
     </div>
 
