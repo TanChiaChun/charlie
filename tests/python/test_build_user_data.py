@@ -7,17 +7,18 @@ import pytest
 import build_user_data
 
 
-def test_calculate_5k_streaks_stats() -> None:
+def test_calculate_streaks_stats_5000() -> None:
     daily_steps_by_user = {
         "user1": {"10/13": 6000, "10/12": 5000},
         "user2": {"10/13": 8000, "10/12": 7000},
         "user3": {"10/13": 3500, "10/12": 3000},
     }
 
-    stats = build_user_data.calculate_5k_streaks_stats(
+    stats = build_user_data.calculate_streaks_stats(
         daily_steps_by_user,
         build_user_data.MIN_DATE + dt.timedelta(days=2),
         {"user1", "user2", "user3"},
+        5000,
     )
     assert stats["user1"]["longestStreak"] == 2
     assert stats["user1"]["longestStreakRank"] == 1
@@ -89,7 +90,7 @@ def test_calculate_monthly_team_stats() -> None:
     }
 
 
-def test_calculate_user_5k_streaks() -> None:
+def test_calculate_user_streaks_5000() -> None:
     start_date = build_user_data.MIN_DATE
     today = start_date + dt.timedelta(days=5)
     daily_steps = {
@@ -101,12 +102,37 @@ def test_calculate_user_5k_streaks() -> None:
         start_date: 5000,
     }
 
-    assert build_user_data.calculate_user_5k_streaks(daily_steps, today) == {
+    assert build_user_data.calculate_user_streaks(daily_steps, today, 5000) == {
         "longestStreak": 3,
         "longestStreakStart": start_date,
         "longestStreakEnd": start_date + dt.timedelta(days=2),
         "currentStreak": 2,
         "currentStreakStart": start_date + dt.timedelta(days=4),
+        "currentStreakEnd": today,
+    }
+
+
+def test_calculate_user_streaks_10000() -> None:
+    start_date = build_user_data.MIN_DATE
+    today = start_date + dt.timedelta(days=7)
+    daily_steps = {
+        today: 10000,
+        start_date + dt.timedelta(days=5): 9000,
+        start_date + dt.timedelta(days=4): 15000,
+        start_date + dt.timedelta(days=3): 13000,
+        start_date + dt.timedelta(days=2): 12000,
+        start_date + dt.timedelta(days=1): 11000,
+        start_date: 10000,
+    }
+
+    assert build_user_data.calculate_user_streaks(
+        daily_steps, today, 10000, weekdays_only=True
+    ) == {
+        "longestStreak": 6,
+        "longestStreakStart": start_date,
+        "longestStreakEnd": today,
+        "currentStreak": 6,
+        "currentStreakStart": start_date,
         "currentStreakEnd": today,
     }
 

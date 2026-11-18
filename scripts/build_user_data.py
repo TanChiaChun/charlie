@@ -65,12 +65,14 @@ class UserData:
     streaks_5k_stats: dict[str, StreaksStats]
 
 
-def calculate_5k_streaks_stats(
+def calculate_streaks_stats(
     daily_steps_by_user: dict[str, dict[str, int]],
     last_fetch_date: dt.date,
     registered_users: set[str],
+    threshold: int,
+    weekdays_only: bool = False,
 ) -> dict[str, StreaksStats]:
-    """Calculate 5K streak statistics and longest-streak rankings for users."""
+    """Calculate streak statistics and longest-streak rankings for users."""
     streaks_stats = {}
 
     for user in registered_users:
@@ -78,8 +80,8 @@ def calculate_5k_streaks_stats(
             parse_date_string(date, 2026): steps
             for date, steps in daily_steps_by_user.get(user, {}).items()
         }
-        streaks_stats[user] = calculate_user_5k_streaks(
-            daily_steps, last_fetch_date
+        streaks_stats[user] = calculate_user_streaks(
+            daily_steps, last_fetch_date, threshold, weekdays_only
         )
 
     ranks = rank_by_scores(
@@ -173,21 +175,24 @@ def calculate_monthly_team_stats(
     }
 
 
-def calculate_user_5k_streaks(
-    daily_steps: dict[dt.date, int], today: dt.date
+def calculate_user_streaks(
+    daily_steps: dict[dt.date, int],
+    today: dt.date,
+    threshold: int,
+    weekdays_only: bool = False,
 ) -> StreaksStats:
-    """Calculate a user's current and longest 5K streaks.
+    """Calculate a user's current and longest streaks.
 
-    A qualifying day has at least 5000 steps. Missing dates count as zero steps.
-    Today's streak is provisional: if today's steps are below 5000, calculate
-    streaks only through yesterday.
+    A qualifying day meets the given step threshold. Missing dates count as zero
+    steps. When `weekdays_only` is True, weekends are ignored and do not break
+    streaks. Today's streak is provisional: if today's steps are below the
+    threshold, calculate streaks only through yesterday.
     """
-    five_k_threshold = 5000
-    current_cutoff = (
-        today
-        if daily_steps.get(today, 0) >= five_k_threshold
-        else today - dt.timedelta(days=1)
-    )
+    current_cutoff = today
+    if daily_steps.get(today, 0) < threshold and (
+        not weekdays_only or today.weekday() < 5
+    ):
+        current_cutoff -= dt.timedelta(days=1)
 
     longest_length = 0
     longest_start = None
@@ -197,30 +202,38 @@ def calculate_user_5k_streaks(
     current_end = None
     processing_length = 0
     processing_start = None
+    processing_end = None
 
     day = MIN_DATE
     while day <= current_cutoff:
-        if daily_steps.get(day, 0) >= five_k_threshold:
+        if weekdays_only and day.weekday() >= 5:
+            day += dt.timedelta(days=1)
+            continue
+
+        if daily_steps.get(day, 0) >= threshold:
             if processing_length == 0:
                 processing_start = day
             processing_length += 1
+            processing_end = day
         else:
             if processing_length > longest_length:
                 longest_length = processing_length
                 longest_start = processing_start
-                longest_end = day - dt.timedelta(days=1)
+                longest_end = processing_end
             processing_length = 0
             processing_start = None
+            processing_end = None
+
         day += dt.timedelta(days=1)
 
     if processing_length:
         if processing_length > longest_length:
             longest_length = processing_length
             longest_start = processing_start
-            longest_end = current_cutoff
+            longest_end = processing_end
         current_length = processing_length
         current_start = processing_start
-        current_end = current_cutoff
+        current_end = processing_end
 
     return {
         "longestStreak": longest_length,
@@ -582,8 +595,8 @@ def main() -> None:
         registered_users,
     )
     monthly_team_stats = calculate_monthly_team_stats(monthly_stats, user_teams)
-    streaks_5k_stats = calculate_5k_streaks_stats(
-        daily_steps_by_user, last_fetch_date, registered_users
+    streaks_5k_stats = calculate_streaks_stats(
+        daily_steps_by_user, last_fetch_date, registered_users, 5000
     )
 
     write_user_json_files(
